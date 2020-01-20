@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"vnmquan.com/Golang-WebDev/januadrym/03/internal/user"
+	"vnmquan.com/seennit/internal/user"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-module vnmquan.com/Golang-WebDev/januadrym/03
+module vnmquan.com/seennit
 
 go 1.13
 
