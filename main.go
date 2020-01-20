@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"vnmquan.com/seennit/internal/user"
+	"vnmquan.com/seennit/internal/app/user"
 )
 
 func main() {
-	userRepo := &user.InMemoryRepo{Users: map[string]user.User{}}
+	userRepo := &user.MongoDBRepository{Users: map[string]user.User{}}
 	userService := &user.Service{Repo: userRepo}
 	userHandler := &user.Handler{Svc: userService}
 	r := mux.NewRouter()

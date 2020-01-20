@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"vnmquan.com/seennit/internal/app/types"
 )
 
 type (
@@ -51,15 +52,27 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	userName, err := h.Svc.Register(r.Context(), req)
+	id, err := h.Svc.Register(r.Context(), req)
 	if err == ErrUserAlreadyExist {
-		fmt.Println("user already exist")
+		json.NewEncoder(w).Encode(types.Response{
+			Code:  "0002",
+			Error: err.Error(),
+		})
 		return
 	}
 	if err != nil {
+		json.NewEncoder(w).Encode(types.Response{
+			Code: "0001",
+		})
 		return
 	}
 
-	json.NewEncoder(w).Encode(userName)
-	w.Write([]byte(userName))
+	json.NewEncoder(w).Encode(types.Response{
+		Code: types.CodeSuccess,
+		Data: map[string]interface{}{
+			"id": id,
+		},
+	})
+	json.NewEncoder(w).Encode(id)
+	w.Write([]byte(id))
 }
