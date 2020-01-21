@@ -10,9 +10,10 @@ import (
 
 type (
 	service interface {
-		Create(context.Context, User) (string, error)
+		// Create(context.Context, User) (string, error)
 		Home(context.Context, User) (string, error)
 		Register(ctx context.Context, req RegisterRequest) (string, error)
+		SearchUser(ctx context.Context, req User) (string, error)
 	}
 
 	Handler struct {
@@ -20,18 +21,24 @@ type (
 	}
 )
 
-func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
-	id, err := h.Svc.Create(context.Background(), User{})
-	if err != nil {
-		fmt.Println("Handle error", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Something error in server"))
-		return
+func NewHandler(svc service) *Handler {
+	return &Handler{
+		Svc: svc,
 	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(id))
 }
+
+// func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
+// 	id, err := h.Svc.Create(context.Background(), User{})
+// 	if err != nil {
+// 		fmt.Println("Handle error", err)
+// 		w.WriteHeader(http.StatusInternalServerError)
+// 		w.Write([]byte("Something error in server"))
+// 		return
+// 	}
+
+// 	w.WriteHeader(http.StatusCreated)
+// 	w.Write([]byte(id))
+// }
 
 func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
 	uname, err := h.Svc.Home(context.Background(), User{})
@@ -70,9 +77,28 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(types.Response{
 		Code: types.CodeSuccess,
 		Data: map[string]interface{}{
-			"id": id,
+			"id":    id,
+			"name":  req.FirstName,
+			"email": req.Email,
 		},
 	})
-	json.NewEncoder(w).Encode(id)
-	w.Write([]byte(id))
+	// json.NewEncoder(w).Encode(id)
+	w.Write([]byte(req.FirstName))
+}
+
+func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
+	var req User
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	ursName, err := h.Svc.SearchUser(r.Context(), req)
+	if err != nil {
+		fmt.Errorf("err: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Something error in server"))
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(ursName))
 }

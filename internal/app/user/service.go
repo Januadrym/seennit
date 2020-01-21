@@ -11,7 +11,7 @@ import (
 )
 
 type repoProvider interface {
-	Create(context.Context, User) (string, error)
+	// Create(context.Context, User) (string, error)
 	Home(context.Context, User) (string, error)
 	FindUserByMail(ctx context.Context, email string) (*User, error)
 	Insert(context.Context, User) error
@@ -21,13 +21,22 @@ type Service struct {
 	Repo repoProvider
 }
 
-func (s *Service) Create(ctx context.Context, user User) (string, error) {
-	id, err := s.Repo.Create(ctx, user)
+func NewService(repo repoProvider) *Service {
+	return &Service{
+		Repo: repo,
+	}
+}
+
+func (s *Service) SearchUser(ctx context.Context, req User) (string, error) {
+	usr, err := s.Repo.FindUserByMail(ctx, req.Email)
 	if err != nil {
 		fmt.Println("handle error")
 		return "", err
 	}
-	return id, nil
+	if usr != nil {
+		return "", ErrUserAlreadyExist
+	}
+	return usr.FirstName, nil
 }
 
 func (s *Service) Home(ctx context.Context, user User) (string, error) {

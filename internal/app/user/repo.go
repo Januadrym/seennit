@@ -2,15 +2,14 @@ package user
 
 import (
 	"context"
+
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
-	"github.com/google/uuid"
 )
 
 type (
 	MongoDBRepository struct {
 		session *mgo.Session
-		Users   map[string]User
 	}
 )
 
@@ -29,15 +28,14 @@ func (r *MongoDBRepository) Insert(ctx context.Context, user User) error {
 	return nil
 }
 
-func (r *MongoDBRepository) Create(ctx context.Context, user User) (string, error) {
-	id := uuid.New().String()
-	r.Users[id] = user
-	return id, nil
-}
+// func (r *MongoDBRepository) Create(ctx context.Context, user User) (string, error) {
+// 	id := uuid.New().String()
+// 	r.Users[id] = user
+// 	return id, nil
+// }
 
 func (r *MongoDBRepository) Home(ctx context.Context, user User) (string, error) {
 	name := "this is Q"
-	r.Users[name] = user
 	return name, nil
 }
 
