@@ -33,8 +33,8 @@ services:
       # DB
       - MONGODB_ADDRS=${MONGODB_ADDRS}
       - MONGODB_DATABASE=${MONGODB_DATABASE}
-      - MONGODB_USERNAME=${MONGODB_USERNAME}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+      # - MONGODB_USERNAME=${MONGODB_USERNAME}
+      # - MONGODB_PASSWORD=${MONGODB_PASSWORD}
       - MONGODB_TIMEOUT=${MONGODB_TIMEOUT}
     volumes:
       - ../../.realize.yaml:/home/vnmquan/WORK/workspace/src/vnmquan.com/seennit/.realize.yaml

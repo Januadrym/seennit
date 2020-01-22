@@ -8,18 +8,21 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
+	"vnmquan.com/seennit/internal/app/types"
 )
 
-type repoProvider interface {
-	// Create(context.Context, User) (string, error)
-	Home(context.Context, User) (string, error)
-	FindUserByMail(ctx context.Context, email string) (*User, error)
-	Insert(context.Context, User) error
-}
+type (
+	repoProvider interface {
+		FindUserByMail(ctx context.Context, email string) (*types.User, error)
+		Insert(ctx context.Context, user *types.User) error
+		FindAll(context.Context) ([]*types.User, error)
+		Delete(ctx context.Context) error
+	}
 
-type Service struct {
-	Repo repoProvider
-}
+	Service struct {
+		Repo repoProvider
+	}
+)
 
 func NewService(repo repoProvider) *Service {
 	return &Service{
@@ -27,56 +30,68 @@ func NewService(repo repoProvider) *Service {
 	}
 }
 
-func (s *Service) SearchUser(ctx context.Context, req User) (string, error) {
+func (s *Service) SearchUser(ctx context.Context, req *types.User) (*types.User, error) {
 	usr, err := s.Repo.FindUserByMail(ctx, req.Email)
 	if err != nil {
 		fmt.Println("handle error")
-		return "", err
+		return nil, err
 	}
-	if usr != nil {
-		return "", ErrUserAlreadyExist
-	}
-	return usr.FirstName, nil
+	return usr, nil
+
 }
 
-func (s *Service) Home(ctx context.Context, user User) (string, error) {
-	name, err := s.Repo.Home(ctx, user)
-	if err != nil {
-		fmt.Println("handle this error")
-		return "", err
-	}
-	return name, nil
-}
-
-func (s *Service) Register(ctx context.Context, req RegisterRequest) (string, error) {
+func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*types.User, error) {
 	userDB, err := s.Repo.FindUserByMail(ctx, req.Email)
+
 	if err != nil && err != ErrUserNotFound {
 		logrus.Errorf("fail to find user: %v", err)
-		return "", err
+		return nil, err
 	}
+
 	if userDB != nil {
-		return "", ErrUserAlreadyExist
+		logrus.Errorf("user exist: %v", err)
+		return nil, ErrUserAlreadyExist
 	}
 
 	pword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		logrus.Errorf("fail to gen password: &v", err)
-		return "", fmt.Errorf("fail to register")
+		return nil, fmt.Errorf("fail to register")
 	}
 
-	user := User{
+	user := &types.User{
 		ID:        uuid.New().String(),
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Email:     req.Email,
-		Gender:    req.Gender,
 		Password:  string(pword),
 		CreatedAt: time.Now(),
 	}
 
 	if err := s.Repo.Insert(ctx, user); err != nil {
 		logrus.Errorf("fail to insert: &v", err)
-		return "", fmt.Errorf("fail to register: %v", err)
+		return nil, fmt.Errorf("fail to register: %v", err)
 	}
-	return user.ID, nil
+	return user, nil
+}
+
+func (s *Service) FindAll(ctx context.Context) ([]*types.User, error) {
+	users, err := s.Repo.FindAll(ctx)
+	info := make([]*types.User, 0)
+	for _, usr := range users {
+		info = append(info, &types.User{
+			ID:        usr.ID,
+			Email:     usr.Email,
+			FirstName: usr.FirstName,
+			LastName:  usr.LastName,
+		})
+	}
+	return info, err
+}
+
+func (s *Service) DeleteAll(ctx context.Context) error {
+	if err := s.Repo.Delete(ctx); err != nil {
+		return nil
+	}
+	return nil
 }

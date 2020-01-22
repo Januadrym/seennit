@@ -5,6 +5,9 @@ import (
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+	"github.com/sirupsen/logrus"
+
+	"vnmquan.com/seennit/internal/app/types"
 )
 
 type (
@@ -19,31 +22,22 @@ func NewMongoDBRepo(session *mgo.Session) *MongoDBRepository {
 	}
 }
 
-func (r *MongoDBRepository) Insert(ctx context.Context, user User) error {
+func (r *MongoDBRepository) Insert(ctx context.Context, user *types.User) error {
+	logrus.Errorf("insert user: %v", user)
 	s := r.session.Clone()
 	defer s.Clone()
-	if err := s.DB("").C("users").Insert(user); err != nil {
+	if err := r.collection(s).Insert(user); err != nil {
+		logrus.Errorf("insert user: %v", user)
 		return err
 	}
 	return nil
 }
 
-// func (r *MongoDBRepository) Create(ctx context.Context, user User) (string, error) {
-// 	id := uuid.New().String()
-// 	r.Users[id] = user
-// 	return id, nil
-// }
-
-func (r *MongoDBRepository) Home(ctx context.Context, user User) (string, error) {
-	name := "this is Q"
-	return name, nil
-}
-
-func (r *MongoDBRepository) FindUserByMail(ctx context.Context, email string) (*User, error) {
+func (r *MongoDBRepository) FindUserByMail(ctx context.Context, email string) (*types.User, error) {
 	s := r.session.Clone()
 	defer s.Clone()
-	var usr User
-	if err := s.DB("").C("user").Find(bson.M{
+	var usr *types.User
+	if err := r.collection(s).Find(bson.M{
 		"email": email,
 	}).One(&usr); err != nil {
 		if err == mgo.ErrNotFound {
@@ -51,5 +45,26 @@ func (r *MongoDBRepository) FindUserByMail(ctx context.Context, email string) (*
 		}
 		return nil, err
 	}
-	return &usr, nil
+	return usr, nil
+}
+
+func (r *MongoDBRepository) FindAll(context.Context) ([]*types.User, error) {
+	s := r.session.Clone()
+	defer s.Close()
+	var users []*types.User
+	if err := r.collection(s).Find(nil).All(&users); err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func (r *MongoDBRepository) Delete(ctx context.Context) error {
+	s := r.session.Clone()
+	defer s.Close()
+	r.collection(s).RemoveAll(nil)
+	return nil
+}
+
+func (r *MongoDBRepository) collection(s *mgo.Session) *mgo.Collection {
+	return s.DB("").C("users")
 }

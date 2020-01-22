@@ -3,17 +3,17 @@ package user
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
+
 	"vnmquan.com/seennit/internal/app/types"
 )
 
 type (
 	service interface {
-		// Create(context.Context, User) (string, error)
-		Home(context.Context, User) (string, error)
-		Register(ctx context.Context, req RegisterRequest) (string, error)
-		SearchUser(ctx context.Context, req User) (string, error)
+		Register(ctx context.Context, req *types.RegisterRequest) (*types.User, error)
+		SearchUser(ctx context.Context, req *types.User) (*types.User, error)
+		FindAll(ctx context.Context) ([]*types.User, error)
+		DeleteAll(ctx context.Context) error
 	}
 
 	Handler struct {
@@ -27,39 +27,13 @@ func NewHandler(svc service) *Handler {
 	}
 }
 
-// func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
-// 	id, err := h.Svc.Create(context.Background(), User{})
-// 	if err != nil {
-// 		fmt.Println("Handle error", err)
-// 		w.WriteHeader(http.StatusInternalServerError)
-// 		w.Write([]byte("Something error in server"))
-// 		return
-// 	}
-
-// 	w.WriteHeader(http.StatusCreated)
-// 	w.Write([]byte(id))
-// }
-
-func (h *Handler) Home(w http.ResponseWriter, r *http.Request) {
-	uname, err := h.Svc.Home(context.Background(), User{})
-	if err != nil {
-		fmt.Println("Handle error", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Something error in server"))
-		return
-	}
-	fmt.Println(r.URL)
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(uname))
-}
-
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
-	var req RegisterRequest
+	var req types.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	id, err := h.Svc.Register(r.Context(), req)
+	usr, err := h.Svc.Register(r.Context(), &req)
 	if err == ErrUserAlreadyExist {
 		json.NewEncoder(w).Encode(types.Response{
 			Code:  "0002",
@@ -76,29 +50,47 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(types.Response{
 		Code: types.CodeSuccess,
-		Data: map[string]interface{}{
-			"id":    id,
-			"name":  req.FirstName,
-			"email": req.Email,
-		},
+		Data: usr.Strip(),
 	})
-	// json.NewEncoder(w).Encode(id)
-	w.Write([]byte(req.FirstName))
 }
 
 func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
-	var req User
+	var req *types.User
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	ursName, err := h.Svc.SearchUser(r.Context(), req)
+	urs, err := h.Svc.SearchUser(r.Context(), req)
 	if err != nil {
-		fmt.Errorf("err: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Something error in server"))
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(ursName))
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(types.Response{
+		Data: urs.Strip(),
+	})
+}
+
+func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
+	users, err := h.Svc.FindAll(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Something error in server"))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(types.Response{
+		Data: users,
+	})
+}
+
+func (h *Handler) DeleteAll(w http.ResponseWriter, r *http.Request) {
+	err := h.Svc.DeleteAll(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Something error in server"))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
