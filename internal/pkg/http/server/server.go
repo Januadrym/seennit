@@ -2,9 +2,10 @@ package server
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
+
+	"github.com/sirupsen/logrus"
 )
 
 func ListenAndServe(conf Config, router http.Handler) {

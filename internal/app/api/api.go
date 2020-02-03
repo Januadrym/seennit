@@ -35,7 +35,10 @@ func NewRouter() (http.Handler, error) {
 
 	routes = append(routes, userHandler.Routes()...)
 
-	r, err := router.New()
+	conf := router.LoadConfigFromEnv()
+	conf.Routes = routes
+
+	r, err := router.New(conf)
 	if err != nil {
 		return nil, err
 	}

@@ -1,14 +1,16 @@
 package router
 
-import "net/http"
+import (
+	"net/http"
 
-import "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
+	"vnmquan.com/seennit/internal/pkg/config/env"
+)
 
 type (
-	// Config hold configurations of router
 	Config struct {
-		NotFoundHandler http.Handler
 		Routes          []Route
+		NotFoundHandler http.Handler
 	}
 
 	Route struct {
@@ -22,9 +24,10 @@ type (
 
 func New(conf *Config) (http.Handler, error) {
 	r := mux.NewRouter()
-
 	for _, rt := range conf.Routes {
 		var h http.Handler
+		h = http.HandlerFunc(rt.Handler)
+
 		r.Path(rt.Path).Methods(rt.Method).Handler(h).Queries(rt.Queries...)
 	}
 	if conf.NotFoundHandler != nil {
@@ -32,4 +35,10 @@ func New(conf *Config) (http.Handler, error) {
 	}
 
 	return r, nil
+}
+
+func LoadConfigFromEnv() *Config {
+	var conf Config
+	env.Load(&conf)
+	return &conf
 }

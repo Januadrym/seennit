@@ -3,23 +3,23 @@ package server
 import (
 	"time"
 
-	"github.com/kelseyhightower/envconfig"
+	"vnmquan.com/seennit/internal/pkg/config/env"
 )
 
 type (
 	//HTTP server configurations
 	Config struct {
-		Address      string        `envconfig:"HTTP_ADDRESS" default:":"`
-		Port         int           `envconfig:"HTTP_PORT" default:"8080"`
-		ReadTimeout  time.Duration `envconfig:"HTTP_READ_TIMEOUT" default:"10s"`
-		WriteTimeout time.Duration `envconfig:"HTTP_WRITE_TIMEOUT" default:"10s"`
+		Address           string        `envconfig:"HTTP_ADDRESS"`
+		Port              int           `envconfig:"HTTP_PORT"`
+		ReadTimeout       time.Duration `envconfig:"HTTP_READ_TIMEOUT" default:"10s"`
+		WriteTimeout      time.Duration `envconfig:"HTTP_WRITE_TIMEOUT" default:"10s"`
+		ReadHeaderTimeout time.Duration `envconfig:"HTTP_READ_HEADER_TIMEOUT" default:"10s"`
+		ShutdownTimeout   time.Duration `envconfig:"HTTP_SHUTDOWN_TIMEOUT" default:"10s"`
 	}
 )
 
-func Load() (Config, error) {
+func LoadConfigFromEnv() Config {
 	var conf Config
-	if err := envconfig.Process("", &conf); err != nil {
-		return conf, err
-	}
-	return conf, nil
+	env.Load(&conf)
+	return conf
 }
