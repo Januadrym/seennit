@@ -18,13 +18,21 @@ type (
 	}
 )
 
-func Load() (Config, error) {
+func Load() (*Config, error) {
 	var conf Config
 	if err := envconfig.Process("", &conf); err != nil {
-		return conf, err
+		return &conf, err
 	}
-	return conf, nil
+	return &conf, nil
 }
+
+//// envconfig.go
+//// for loading config from env
+// func LoadConfigFromEnv() *Config {
+// 	var conf Config
+// 	envconfig.Load(&conf)
+// 	return &conf
+// }
 
 func Dial(conf *Config) (*mgo.Session, error) {
 	logrus.Infof("dialing to target MongoDB at: %v, database: %v", conf.Addrs, conf.Database)

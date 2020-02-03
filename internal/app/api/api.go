@@ -15,13 +15,30 @@ const (
 )
 
 func NewRouter() (http.Handler, error) {
-	indexHandler := 
+
+	//User
+	userSrv, err := newUserService()
+	if err != nil {
+		return nil, err
+	}
+	userHandler := newUserHandler(userSrv)
+	//
+
+	// indexHandler :=
 	routes := []router.Route{
-		// web
 		{
 			Path:    "/",
 			Method:  get,
-			Handler: indexHandler.ServeHTTP,
+			Handler: ServeHTTP,
 		},
 	}
+
+	routes = append(routes, userHandler.Routes()...)
+
+	r, err := router.New()
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
