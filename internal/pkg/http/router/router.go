@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/seennit/internal/pkg/config/env"
+	"github.com/Januadrym/seennit/internal/pkg/config/env"
 )
 
 type (

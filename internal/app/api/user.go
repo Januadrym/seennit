@@ -1,6 +1,6 @@
 package api
 
-import "github.com/seennit/internal/app/user"
+import "github.com/Januadrym/seennit/internal/app/user"
 
 func newUserService() (*user.Service, error) {
 	s, err := dialMongo()

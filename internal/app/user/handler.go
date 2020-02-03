@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/seennit/internal/app/types"
+	"github.com/Januadrym/seennit/internal/app/types"
 )
 
 type (

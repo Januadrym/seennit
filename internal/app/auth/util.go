@@ -3,8 +3,8 @@ package auth
 import (
 	"time"
 
-	"github.com/seennit/internal/app/types"
-	"github.com/seennit/internal/pkg/jwt"
+	"github.com/Januadrym/seennit/internal/app/types"
+	"github.com/Januadrym/seennit/internal/pkg/jwt"
 )
 
 func userToClaims(user *types.User, lifeTime time.Duration) jwt.Claims {

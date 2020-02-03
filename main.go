@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/seennit/internal/app/api"
-	"github.com/seennit/internal/pkg/http/server"
+	"github.com/Januadrym/seennit/internal/app/api"
+	"github.com/Januadrym/seennit/internal/pkg/http/server"
 )
 
 func main() {

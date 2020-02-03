@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	"github.com/seennit/internal/app/types"
+	"github.com/Januadrym/seennit/internal/app/types"
 )
 
 type (

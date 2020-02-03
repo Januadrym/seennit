@@ -1,4 +1,4 @@
-module github.com/seennit
+module github.com/Januadrym/seennit
 
 go 1.13
 

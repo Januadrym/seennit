@@ -3,7 +3,7 @@ package server
 import (
 	"time"
 
-	"github.com/seennit/internal/pkg/config/env"
+	"github.com/Januadrym/seennit/internal/pkg/config/env"
 )
 
 type (

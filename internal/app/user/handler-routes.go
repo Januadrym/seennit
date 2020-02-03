@@ -2,7 +2,7 @@ package user
 
 import (
 	"net/http"
-	"github.com/seennit/internal/pkg/http/router"
+	"github.com/Januadrym/seennit/internal/pkg/http/router"
 )
 
 func (h *Handler) Routes() []router.Route {
