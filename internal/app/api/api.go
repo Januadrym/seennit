@@ -22,9 +22,11 @@ func NewRouter() (http.Handler, error) {
 		return nil, err
 	}
 	userHandler := newUserHandler(userSrv)
-	//
 
-	// indexHandler :=
+	//
+	jwtSignVerifier := newJWTSignVerifier()
+	authHandler := newAuthHandler(jwtSignVerifier, userSrv)
+
 	routes := []router.Route{
 		{
 			Path:    "/",
@@ -34,6 +36,7 @@ func NewRouter() (http.Handler, error) {
 	}
 
 	routes = append(routes, userHandler.Routes()...)
+	routes = append(routes, authHandler.Routes()...)
 
 	conf := router.LoadConfigFromEnv()
 	conf.Routes = routes

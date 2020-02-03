@@ -12,7 +12,6 @@ type (
 	Claims struct {
 		jwt.StandardClaims
 		Role      []string
-		AvatarURL string
 		FirstName string
 		LastName  string
 		UserID    string

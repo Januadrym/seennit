@@ -2,13 +2,15 @@ package user
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/Januadrym/seennit/internal/app/types"
+	"github.com/Januadrym/seennit/internal/pkg/db"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	"github.com/Januadrym/seennit/internal/app/types"
 )
 
 type (
@@ -94,4 +96,21 @@ func (s *Service) DeleteAll(ctx context.Context) error {
 		return nil
 	}
 	return nil
+}
+
+func (s *Service) Auth(ctx context.Context, email, password string) (*types.User, error) {
+	user, err := s.Repo.FindUserByMail(ctx, email)
+	if err != nil && !db.IsErrNotFound(err) {
+		logrus.WithContext(ctx).Errorf("failed to check existing user by email, err: %v", err)
+		return nil, errors.New("internal error")
+	}
+	if db.IsErrNotFound(err) {
+		logrus.WithContext(ctx).Debugf("user not found, email: %s", email)
+		return nil, errors.New("user not found")
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		logrus.WithContext(ctx).Error("invalid password")
+		return nil, errors.New("invalid password")
+	}
+	return user.Strip(), nil
 }
