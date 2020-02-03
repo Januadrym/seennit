@@ -9,7 +9,7 @@ server:
   port: 8082
 schema:
 - name: backend
-  path: /home/vnmquan/WORK/workspace/src/vnmquan.com/seennit
+  path: /home/vnmquan/WORK/workspace/src/github.com/seennit
   commands:
     run:
       status: true

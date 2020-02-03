@@ -7,7 +7,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"github.com/sirupsen/logrus"
 
-	"vnmquan.com/seennit/internal/app/types"
+	"github.com/seennit/internal/app/types"
 )
 
 type (

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"vnmquan.com/seennit/internal/app/types"
+	"github.com/seennit/internal/app/types"
 )
 
 type (
@@ -68,6 +68,7 @@ func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(types.Response{
+		Code: types.CodeSuccess,
 		Data: urs.Strip(),
 	})
 }
@@ -81,6 +82,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(types.Response{
+		Code: types.CodeSuccess,
 		Data: users,
 	})
 }

@@ -13,7 +13,8 @@ type (
 	}
 
 	User struct {
-		ID        string    `bson:"_id"`
+		// ID        string    `bson:"_id"`
+		UserID    string    `bson:"user_id,omitempty"`
 		FirstName string    `bson:"first_name"`
 		LastName  string    `bson:"last_name"`
 		Email     string    `bson:"email"`
@@ -21,6 +22,8 @@ type (
 		Locked    bool      `bson:"locked"`
 		CreatedAt time.Time `bson:"created_at"`
 		UpdatedAt time.Time `bson:"updated_at"`
+		AvatarURL string    `bson:"avatar_url,omitempty"`
+		Roles     []string  `bson:"roles,omitempty"`
 	}
 )
 

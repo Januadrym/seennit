@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/globalsign/mgo"
-	"vnmquan.com/seennit/internal/pkg/db/mongodb"
+	"github.com/seennit/internal/pkg/db/mongodb"
 )
 
 var (

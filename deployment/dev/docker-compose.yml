@@ -37,14 +37,14 @@ services:
       # - MONGODB_PASSWORD=${MONGODB_PASSWORD}
       - MONGODB_TIMEOUT=${MONGODB_TIMEOUT}
     volumes:
-      - ../../.realize.yaml:/home/vnmquan/WORK/workspace/src/vnmquan.com/seennit/.realize.yaml
-      - ../../main.go:/home/vnmquan/WORK/workspace/src/vnmquan.com/seennit/main.go
-      - ../../go.mod:/home/vnmquan/WORK/workspace/src/vnmquan.com/seennit/go.mod
-      - ../../go.sum:/home/vnmquan/WORK/workspace/src/vnmquan.com/seennit/go.sum
-      - ../../internal:/home/vnmquan/WORK/workspace/src/vnmquan.com/seennit/internal
-      - ../../configs:/home/vnmquan/WORK/workspace/src/vnmquan.com/seennit/configs
+      - ../../.realize.yaml:/home/vnmquan/WORK/workspace/src/github.com/seennit/.realize.yaml
+      - ../../main.go:/home/vnmquan/WORK/workspace/src/github.com/seennit/main.go
+      - ../../go.mod:/home/vnmquan/WORK/workspace/src/github.com/seennit/go.mod
+      - ../../go.sum:/home/vnmquan/WORK/workspace/src/github.com/seennit/go.sum
+      - ../../internal:/home/vnmquan/WORK/workspace/src/github.com/seennit/internal
+      - ../../configs:/home/vnmquan/WORK/workspace/src/github.com/seennit/configs
       - ../scripts:/scripts
-    working_dir: /home/vnmquan/WORK/workspace/src/vnmquan.com/seennit
+    working_dir: /home/vnmquan/WORK/workspace/src/github.com/seennit
     entrypoint: [ "sh", "-c", "/scripts/wait-for.sh mongodb:27017 --timeout=5 -- realize start" ]
     depends_on:
       - mongodb

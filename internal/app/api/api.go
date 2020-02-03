@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"vnmquan.com/seennit/internal/pkg/http/router"
+	"github.com/seennit/internal/pkg/http/router"
 )
 
 const (

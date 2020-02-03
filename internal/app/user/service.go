@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	"vnmquan.com/seennit/internal/app/types"
+	"github.com/seennit/internal/app/types"
 )
 
 type (
@@ -60,7 +60,7 @@ func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*ty
 	}
 
 	user := &types.User{
-		ID:        uuid.New().String(),
+		UserID:    uuid.New().String(),
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Email:     req.Email,
@@ -80,7 +80,7 @@ func (s *Service) FindAll(ctx context.Context) ([]*types.User, error) {
 	info := make([]*types.User, 0)
 	for _, usr := range users {
 		info = append(info, &types.User{
-			ID:        usr.ID,
+			UserID:    usr.UserID,
 			Email:     usr.Email,
 			FirstName: usr.FirstName,
 			LastName:  usr.LastName,

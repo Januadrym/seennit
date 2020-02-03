@@ -1,6 +1,6 @@
 package api
 
-import "vnmquan.com/seennit/internal/app/user"
+import "github.com/seennit/internal/app/user"
 
 func newUserService() (*user.Service, error) {
 	s, err := dialMongo()
