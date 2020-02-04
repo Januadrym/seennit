@@ -30,7 +30,7 @@ func (s *Service) Auth(ctx context.Context, email, password string) (string, *ty
 	user, err := s.authenticator.Auth(ctx, email, password)
 	if err != nil {
 		logrus.WithContext(ctx).Errorf("fail to login with %s, err: %#v", email, err)
-		return "", nil, errors.New("Invalid User Password")
+		return "", nil, errors.New("unauthorized")
 	}
 	token, err := s.jwtSigner.Sign(userToClaims(user, jwt.DefaultLifeTime))
 	if err != nil {

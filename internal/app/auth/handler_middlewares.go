@@ -2,9 +2,11 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/Januadrym/seennit/internal/app/types"
+	"github.com/Januadrym/seennit/internal/pkg/http/respond"
 	"github.com/Januadrym/seennit/internal/pkg/jwt"
 	"github.com/sirupsen/logrus"
 )
@@ -45,8 +47,7 @@ func RequireAuthMiddleware(inner http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if user := FromContext(r.Context()); user == nil {
 			logrus.Errorf("unauthorized", http.StatusUnauthorized)
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("unauthorized"))
+			respond.Error(w, errors.New("Unauthorized"), http.StatusUnauthorized)
 			return
 		}
 		inner.ServeHTTP(w, r)

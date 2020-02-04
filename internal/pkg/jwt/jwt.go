@@ -15,6 +15,7 @@ type (
 		FirstName string
 		LastName  string
 		UserID    string
+		Email     string
 	}
 
 	Verifier interface {

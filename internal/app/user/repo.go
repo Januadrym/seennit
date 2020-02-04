@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"time"
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
@@ -40,9 +41,6 @@ func (r *MongoDBRepository) FindUserByMail(ctx context.Context, email string) (*
 	if err := r.collection(s).Find(bson.M{
 		"email": email,
 	}).One(&usr); err != nil {
-		if err == mgo.ErrNotFound {
-			return nil, ErrUserNotFound
-		}
 		return nil, err
 	}
 	return usr, nil
@@ -63,6 +61,20 @@ func (r *MongoDBRepository) Delete(ctx context.Context) error {
 	defer s.Close()
 	r.collection(s).RemoveAll(nil)
 	return nil
+}
+
+func (r *MongoDBRepository) UpdateInfo(ctx context.Context, userID string, user *types.User) error {
+	s := r.session.Clone()
+	defer s.Clone()
+	return r.collection(s).Update(bson.M{"user_id": userID}, bson.M{
+		"$set": bson.M{
+			"first_name": user.FirstName,
+			"last_name":  user.LastName,
+			"email":      user.Email,
+			"avatar_url": user.AvatarURL,
+			"updated_at": time.Now(),
+		},
+	})
 }
 
 func (r *MongoDBRepository) collection(s *mgo.Session) *mgo.Collection {

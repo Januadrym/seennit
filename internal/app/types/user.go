@@ -14,16 +14,26 @@ type (
 
 	User struct {
 		// ID        string    `bson:"_id"`
-		UserID    string    `bson:"user_id,omitempty"`
-		FirstName string    `bson:"first_name"`
-		LastName  string    `bson:"last_name"`
-		Email     string    `bson:"email"`
-		Password  string    `bson:"password"`
-		Locked    bool      `bson:"locked"`
-		CreatedAt time.Time `bson:"created_at"`
-		UpdatedAt time.Time `bson:"updated_at"`
-		AvatarURL string    `bson:"avatar_url,omitempty"`
-		Roles     []string  `bson:"roles,omitempty"`
+		UserID    string    `json:"user_id,omitempty" bson:"user_id,omitempty"`
+		FirstName string    `json:"first_name" bson:"first_name"`
+		LastName  string    `json:"last_name" bson:"last_name"`
+		Email     string    `json:"email" bson:"email"`
+		Password  string    `json:"password,omitempty" bson:"password,omitempty"`
+		Locked    bool      `json:"locked,omitempty" bson:"locked,omitempty"`
+		CreatedAt time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`
+		UpdatedAt time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+		AvatarURL string    `json:"avatar_url,omitempty" bson:"avatar_url,omitempty"`
+		Roles     []string  `json:"roles,omitempty" bson:"roles,omitempty"`
+	}
+
+	UserInfo struct {
+		Email     string     `json:"email,omitempty"`
+		FirstName string     `json:"first_name,omitempty"`
+		LastName  string     `json:"last_name,omitempty"`
+		UserID    string     `json:"user_id,omitempty"`
+		AvatarURL string     `json:"avatar_url,omitempty"`
+		CreatedAt *time.Time `json:"created_at,omitempty"`
+		UpdateAt  *time.Time `json:"updated_at,omitempty"`
 	}
 )
 

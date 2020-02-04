@@ -6,8 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Januadrym/seennit/internal/app/status"
 	"github.com/Januadrym/seennit/internal/app/types"
+	"github.com/Januadrym/seennit/internal/pkg/config/env"
 	"github.com/Januadrym/seennit/internal/pkg/db"
+	"github.com/Januadrym/seennit/internal/pkg/jwt"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -19,17 +22,32 @@ type (
 		Insert(ctx context.Context, user *types.User) error
 		FindAll(context.Context) ([]*types.User, error)
 		Delete(ctx context.Context) error
+		UpdateInfo(ctx context.Context, userID string, user *types.User) error
 	}
 
 	Service struct {
 		Repo repoProvider
+		Conf Config
+		Jwt  jwt.SignVerifier
+	}
+
+	Config struct {
+		ResetPasswordTokenLifetime time.Duration `envconfig:"USER_RESET_PASSWORD_TOKEN_LIFE_TIME" default:"15m"`
 	}
 )
 
-func NewService(repo repoProvider) *Service {
+func NewService(conf Config, repo repoProvider, jwtSigner jwt.SignVerifier) *Service {
 	return &Service{
 		Repo: repo,
+		Conf: conf,
+		Jwt:  jwtSigner,
 	}
+}
+
+func LoadConfigFromEnv() Config {
+	var conf Config
+	env.Load(&conf)
+	return conf
 }
 
 func (s *Service) SearchUser(ctx context.Context, req *types.User) (*types.User, error) {
@@ -44,21 +62,19 @@ func (s *Service) SearchUser(ctx context.Context, req *types.User) (*types.User,
 
 func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*types.User, error) {
 	userDB, err := s.Repo.FindUserByMail(ctx, req.Email)
-
-	if err != nil && err != ErrUserNotFound {
-		logrus.Errorf("fail to find user: %v", err)
-		return nil, err
+	if err != nil && !db.IsErrNotFound(err) {
+		logrus.WithContext(ctx).Errorf("failed to check user by email, err: %v", err)
+		return nil, fmt.Errorf("failed to check user by email, err: %v", err)
 	}
 
 	if userDB != nil {
-		logrus.Errorf("user exist: %v", err)
-		return nil, ErrUserAlreadyExist
+		logrus.WithContext(ctx).Errorf("email exist!")
+		return nil, status.User().DuplicatedEmail
 	}
 
-	pword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	pword, err := s.generatePassword(req.Password)
 	if err != nil {
-		logrus.Errorf("fail to gen password: &v", err)
-		return nil, fmt.Errorf("fail to register")
+		return nil, fmt.Errorf("failed to generate password: %w", err)
 	}
 
 	user := &types.User{
@@ -66,7 +82,7 @@ func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*ty
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Email:     req.Email,
-		Password:  string(pword),
+		Password:  pword,
 		CreatedAt: time.Now(),
 	}
 
@@ -74,7 +90,7 @@ func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*ty
 		logrus.Errorf("fail to insert: &v", err)
 		return nil, fmt.Errorf("fail to register: %v", err)
 	}
-	return user, nil
+	return user.Strip(), nil
 }
 
 func (s *Service) FindAll(ctx context.Context) ([]*types.User, error) {
@@ -98,6 +114,11 @@ func (s *Service) DeleteAll(ctx context.Context) error {
 	return nil
 }
 
+func (s *Service) Update(ctx context.Context, userID string, user *types.User) error {
+	err := s.Repo.UpdateInfo(ctx, userID, user)
+	return err
+}
+
 func (s *Service) Auth(ctx context.Context, email, password string) (*types.User, error) {
 	user, err := s.Repo.FindUserByMail(ctx, email)
 	if err != nil && !db.IsErrNotFound(err) {
@@ -113,4 +134,12 @@ func (s *Service) Auth(ctx context.Context, email, password string) (*types.User
 		return nil, errors.New("invalid password")
 	}
 	return user.Strip(), nil
+}
+
+func (s *Service) generatePassword(pass string) (string, error) {
+	rs, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate password: %w", err)
+	}
+	return string(rs), nil
 }

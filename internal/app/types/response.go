@@ -1,13 +1,28 @@
 package types
 
+import (
+	"encoding/json"
+
+	"github.com/Januadrym/seennit/internal/app/status"
+)
+
 type (
-	Response struct {
-		Code  string
-		Data  interface{}
-		Error string
+	BaseResponse struct {
+		status.Status
+		Data  interface{} `json:"data"`
+		Error string      `json:"error"`
+	}
+	baseResponse BaseResponse
+
+	IDResponse struct {
+		ID string `json:"id"`
 	}
 )
 
-var (
-	CodeSuccess = "0000"
-)
+func (rs BaseResponse) MarshalJSON() ([]byte, error) {
+	var v = baseResponse(rs)
+	if v.Status.Status() == 0 {
+		v.Status = status.Gen().Success
+	}
+	return json.Marshal(v)
+}

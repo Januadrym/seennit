@@ -8,7 +8,8 @@ func newUserService() (*user.Service, error) {
 		return nil, err
 	}
 	repo := user.NewMongoDBRepo(s)
-	return user.NewService(repo), nil
+	conf := user.LoadConfigFromEnv()
+	return user.NewService(conf, repo, newJWTSignVerifier()), nil
 }
 
 func newUserHandler(svc *user.Service) *user.Handler {

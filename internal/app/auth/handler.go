@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/Januadrym/seennit/internal/app/types"
+	"github.com/Januadrym/seennit/internal/pkg/http/respond"
 	"github.com/sirupsen/logrus"
 )
 
@@ -31,24 +32,20 @@ func (h *Handler) Auth(w http.ResponseWriter, r *http.Request) {
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		logrus.Errorf("server error", http.StatusInternalServerError)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("server error"))
+		respond.Error(w, err, http.StatusInternalServerError)
 		return
 	}
 	defer r.Body.Close()
 	token, user, err := h.srv.Auth(r.Context(), req.Email, req.Password)
 	if err != nil {
 		logrus.Errorf("unauthorized", http.StatusUnauthorized)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte("invalid email-password"))
+		respond.Error(w, err, http.StatusUnauthorized)
 		return
 	}
-
-	json.NewEncoder(w).Encode(types.Response{
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
 		Data: map[string]interface{}{
-			"token: ":     token,
-			"user Info: ": user,
+			"token":     token,
+			"user_info": user,
 		},
 	})
-
 }

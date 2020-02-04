@@ -10,24 +10,25 @@ import (
 func (h *Handler) Routes() []router.Route {
 	return []router.Route{
 		{
-			Path:        "/user/getall",
+			Path:        "/users",
 			Method:      http.MethodGet,
 			Handler:     h.GetAll,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
-			Path:    "/user/register",
+			Path:    "/users/registeration",
 			Method:  http.MethodPost,
 			Handler: h.Register,
 		},
 		{
-			Path:    "/user/getsingle",
+			// just for testing
+			Path:    "/users/one",
 			Method:  http.MethodGet,
 			Handler: h.GetUsers,
 		},
 		{
 			// just for testing
-			Path:    "/user/deletealluser",
+			Path:    "/users",
 			Method:  http.MethodDelete,
 			Handler: h.DeleteAll,
 		},
