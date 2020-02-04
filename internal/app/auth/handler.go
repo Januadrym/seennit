@@ -31,12 +31,16 @@ func (h *Handler) Auth(w http.ResponseWriter, r *http.Request) {
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		logrus.Errorf("server error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("server error"))
 		return
 	}
 	defer r.Body.Close()
 	token, user, err := h.srv.Auth(r.Context(), req.Email, req.Password)
 	if err != nil {
 		logrus.Errorf("unauthorized", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("invalid email-password"))
 		return
 	}
 

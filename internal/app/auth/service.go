@@ -29,7 +29,7 @@ func NewService(signer jwt.Signer, authenticator UserAuthen) *Service {
 func (s *Service) Auth(ctx context.Context, email, password string) (string, *types.User, error) {
 	user, err := s.authenticator.Auth(ctx, email, password)
 	if err != nil {
-		logrus.WithContext(ctx).Errorf("fail to login with %s, err: %#v", user, err)
+		logrus.WithContext(ctx).Errorf("fail to login with %s, err: %#v", email, err)
 		return "", nil, errors.New("Invalid User Password")
 	}
 	token, err := s.jwtSigner.Sign(userToClaims(user, jwt.DefaultLifeTime))

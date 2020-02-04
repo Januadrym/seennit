@@ -3,6 +3,8 @@ package api
 import (
 	"net/http"
 
+	"github.com/Januadrym/seennit/internal/app/auth"
+	"github.com/Januadrym/seennit/internal/pkg/http/middleware"
 	"github.com/Januadrym/seennit/internal/pkg/http/router"
 )
 
@@ -26,6 +28,7 @@ func NewRouter() (http.Handler, error) {
 	//
 	jwtSignVerifier := newJWTSignVerifier()
 	authHandler := newAuthHandler(jwtSignVerifier, userSrv)
+	userInfoMiddleware := auth.UserInfoMiddleware(jwtSignVerifier)
 
 	routes := []router.Route{
 		{
@@ -40,11 +43,14 @@ func NewRouter() (http.Handler, error) {
 
 	conf := router.LoadConfigFromEnv()
 	conf.Routes = routes
+	conf.Middlewares = []router.Middleware{
+		userInfoMiddleware,
+	}
 
 	r, err := router.New(conf)
 	if err != nil {
 		return nil, err
 	}
 
-	return r, nil
+	return middleware.CORS(r), nil
 }
