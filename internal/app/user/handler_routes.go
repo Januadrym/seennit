@@ -22,15 +22,17 @@ func (h *Handler) Routes() []router.Route {
 		},
 		{
 			// just for testing
-			Path:    "/users/one",
-			Method:  http.MethodGet,
-			Handler: h.GetUsers,
+			Path:        "/users/one",
+			Method:      http.MethodGet,
+			Handler:     h.GetUsers,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
 			// just for testing
-			Path:    "/users",
-			Method:  http.MethodDelete,
-			Handler: h.DeleteAll,
+			Path:        "/users",
+			Method:      http.MethodDelete,
+			Handler:     h.DeleteAll,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 	}
 }

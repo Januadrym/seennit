@@ -13,7 +13,6 @@ type (
 	}
 
 	User struct {
-		// ID        string    `bson:"_id"`
 		UserID    string    `json:"user_id,omitempty" bson:"user_id,omitempty"`
 		FirstName string    `json:"first_name" bson:"first_name"`
 		LastName  string    `json:"last_name" bson:"last_name"`
@@ -26,15 +25,15 @@ type (
 		Roles     []string  `json:"roles,omitempty" bson:"roles,omitempty"`
 	}
 
-	UserInfo struct {
-		Email     string     `json:"email,omitempty"`
-		FirstName string     `json:"first_name,omitempty"`
-		LastName  string     `json:"last_name,omitempty"`
-		UserID    string     `json:"user_id,omitempty"`
-		AvatarURL string     `json:"avatar_url,omitempty"`
-		CreatedAt *time.Time `json:"created_at,omitempty"`
-		UpdateAt  *time.Time `json:"updated_at,omitempty"`
-	}
+	// UserInfo struct {
+	// 	Email     string     `json:"email,omitempty"`
+	// 	FirstName string     `json:"first_name,omitempty"`
+	// 	LastName  string     `json:"last_name,omitempty"`
+	// 	UserID    string     `json:"user_id,omitempty"`
+	// 	AvatarURL string     `json:"avatar_url,omitempty"`
+	// 	CreatedAt *time.Time `json:"created_at,omitempty"`
+	// 	UpdateAt  *time.Time `json:"updated_at,omitempty"`
+	// }
 )
 
 func (user *User) Strip() *User {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/jwt"
+
 	"github.com/sirupsen/logrus"
 )
 

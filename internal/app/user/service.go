@@ -12,6 +12,7 @@ import (
 	"github.com/Januadrym/seennit/internal/pkg/db"
 	"github.com/Januadrym/seennit/internal/pkg/jwt"
 	"github.com/Januadrym/seennit/internal/pkg/validator"
+
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -54,11 +55,10 @@ func LoadConfigFromEnv() Config {
 func (s *Service) SearchUser(ctx context.Context, req *types.User) (*types.User, error) {
 	usr, err := s.Repo.FindUserByMail(ctx, req.Email)
 	if err != nil {
-		fmt.Println("handle error")
+		logrus.WithContext(ctx).Errorf("failed to find user by email, err: %v", err)
 		return nil, err
 	}
 	return usr, nil
-
 }
 
 func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*types.User, error) {

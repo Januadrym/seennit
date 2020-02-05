@@ -7,6 +7,7 @@ import (
 
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/http/respond"
+
 	"github.com/sirupsen/logrus"
 )
 

@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/Januadrym/seennit/internal/app/types"
+
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/sirupsen/logrus"
-
-	"github.com/Januadrym/seennit/internal/app/types"
 )
 
 type (

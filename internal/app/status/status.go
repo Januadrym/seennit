@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/Januadrym/seennit/internal/pkg/status"
+
 	"gopkg.in/yaml.v2"
 )
 
@@ -25,10 +26,14 @@ type (
 	AuthStatus struct {
 		InvalidUserPassword Status `yaml:"invalid_user_password"`
 	}
+	PolicyStatus struct {
+		Unauthorized Status
+	}
 	statuses struct {
-		Gen  GenStatus
-		User UserStatus
-		Auth AuthStatus
+		Gen    GenStatus
+		User   UserStatus
+		Auth   AuthStatus
+		Policy PolicyStatus
 	}
 )
 
@@ -55,9 +60,7 @@ func load() *statuses {
 	if conf == "" {
 		conf = "configs/status.yml"
 	}
-	if all == nil {
-		Init(conf)
-	}
+	Init(conf)
 	return all
 }
 
@@ -75,4 +78,7 @@ func Success() Status {
 
 func Auth() AuthStatus {
 	return load().Auth
+}
+func Policy() PolicyStatus {
+	return load().Policy
 }

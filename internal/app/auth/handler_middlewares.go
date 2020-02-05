@@ -8,6 +8,7 @@ import (
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/http/respond"
 	"github.com/Januadrym/seennit/internal/pkg/jwt"
+
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,7 +17,8 @@ type (
 )
 
 const (
-	authContextKey contextKey = "r_auth_user"
+	authContextKey contextKey = "r_authorized_user"
+	adminContext   contextKey = "r_authorized_admin"
 )
 
 func UserInfoMiddleware(verifier jwt.Verifier) func(http.Handler) http.Handler {
@@ -63,4 +65,15 @@ func FromContext(ctx context.Context) *types.User {
 		return v
 	}
 	return nil
+}
+
+// for admin
+func NewAdminContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, adminContext, true)
+}
+func IsAdminContext(ctx context.Context) bool {
+	if value, ok := ctx.Value(adminContext).(bool); ok {
+		return value
+	}
+	return false
 }
