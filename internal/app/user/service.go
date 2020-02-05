@@ -11,6 +11,7 @@ import (
 	"github.com/Januadrym/seennit/internal/pkg/config/env"
 	"github.com/Januadrym/seennit/internal/pkg/db"
 	"github.com/Januadrym/seennit/internal/pkg/jwt"
+	"github.com/Januadrym/seennit/internal/pkg/validator"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -61,6 +62,9 @@ func (s *Service) SearchUser(ctx context.Context, req *types.User) (*types.User,
 }
 
 func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*types.User, error) {
+	if err := validator.Validate(req); err != nil {
+		return nil, err
+	}
 	userDB, err := s.Repo.FindUserByMail(ctx, req.Email)
 	if err != nil && !db.IsErrNotFound(err) {
 		logrus.WithContext(ctx).Errorf("failed to check user by email, err: %v", err)
@@ -84,6 +88,9 @@ func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*ty
 		Email:     req.Email,
 		Password:  pword,
 		CreatedAt: time.Now(),
+	}
+	if err := validator.Validate(user); err != nil {
+		return nil, err
 	}
 
 	if err := s.Repo.Insert(ctx, user); err != nil {
