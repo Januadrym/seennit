@@ -26,14 +26,20 @@ type (
 	AuthStatus struct {
 		InvalidUserPassword Status `yaml:"invalid_user_password"`
 	}
+
 	PolicyStatus struct {
 		Unauthorized Status
 	}
+
+	CommunityStatus struct {
+		NameTaken Status `yaml:"name_taken"`
+	}
 	statuses struct {
-		Gen    GenStatus
-		User   UserStatus
-		Auth   AuthStatus
-		Policy PolicyStatus
+		Gen       GenStatus
+		User      UserStatus
+		Auth      AuthStatus
+		Policy    PolicyStatus
+		Community CommunityStatus
 	}
 )
 
@@ -81,4 +87,7 @@ func Auth() AuthStatus {
 }
 func Policy() PolicyStatus {
 	return load().Policy
+}
+func Community() CommunityStatus {
+	return load().Community
 }

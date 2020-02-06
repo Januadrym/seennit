@@ -39,9 +39,9 @@ editor:
     code: 1400
     status: 500
     message: "File size exceed limit"
-#article:
-challenge:
-  not_supported:
+
+community:
+  name_taken:
     code: 1600
     status: 400
     message: "Challenge type not supported"

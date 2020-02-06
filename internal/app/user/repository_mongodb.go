@@ -8,7 +8,6 @@ import (
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
-	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -23,12 +22,12 @@ func NewMongoDBRepo(session *mgo.Session) *MongoDBRepository {
 	}
 }
 
-func (r *MongoDBRepository) Insert(ctx context.Context, user *types.User) error {
-	logrus.Errorf("insert user: %v", user)
+func (r *MongoDBRepository) Create(ctx context.Context, user *types.User) error {
 	s := r.session.Clone()
-	defer s.Clone()
+	defer s.Close()
+	user.UpdatedAt = user.CreatedAt
+
 	if err := r.collection(s).Insert(user); err != nil {
-		logrus.Errorf("insert user: %v", user)
 		return err
 	}
 	return nil
@@ -36,7 +35,7 @@ func (r *MongoDBRepository) Insert(ctx context.Context, user *types.User) error 
 
 func (r *MongoDBRepository) FindUserByMail(ctx context.Context, email string) (*types.User, error) {
 	s := r.session.Clone()
-	defer s.Clone()
+	defer s.Close()
 	var usr *types.User
 	if err := r.collection(s).Find(bson.M{
 		"email": email,
@@ -56,16 +55,23 @@ func (r *MongoDBRepository) FindAll(context.Context) ([]*types.User, error) {
 	return users, nil
 }
 
-func (r *MongoDBRepository) Delete(ctx context.Context) error {
+// for test and messing around - DEVELOPMENT fuc
+func (r *MongoDBRepository) DeleteAll(ctx context.Context) error {
 	s := r.session.Clone()
 	defer s.Close()
 	r.collection(s).RemoveAll(nil)
 	return nil
 }
 
+func (r *MongoDBRepository) Delete(ctx context.Context, id string) error {
+	s := r.session.Clone()
+	defer s.Close()
+	return r.collection(s).Remove(bson.M{"user_id": id})
+}
+
 func (r *MongoDBRepository) UpdateInfo(ctx context.Context, userID string, user *types.User) error {
 	s := r.session.Clone()
-	defer s.Clone()
+	defer s.Close()
 	return r.collection(s).Update(bson.M{"user_id": userID}, bson.M{
 		"$set": bson.M{
 			"first_name": user.FirstName,

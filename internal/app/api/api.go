@@ -25,6 +25,13 @@ func NewRouter() (http.Handler, error) {
 	}
 	userHandler := newUserHandler(userSrv)
 
+	//Community
+	commSrv, err := newCommunityService()
+	if err != nil {
+		return nil, err
+	}
+	commHandler := newCommunityHandler(commSrv)
+
 	//
 	jwtSignVerifier := newJWTSignVerifier()
 	authHandler := newAuthHandler(jwtSignVerifier, userSrv)
@@ -40,6 +47,7 @@ func NewRouter() (http.Handler, error) {
 
 	routes = append(routes, userHandler.Routes()...)
 	routes = append(routes, authHandler.Routes()...)
+	routes = append(routes, commHandler.Routes()...)
 
 	conf := router.LoadConfigFromEnv()
 	conf.Routes = routes

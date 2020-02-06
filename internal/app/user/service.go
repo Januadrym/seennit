@@ -21,9 +21,10 @@ import (
 type (
 	repoProvider interface {
 		FindUserByMail(ctx context.Context, email string) (*types.User, error)
-		Insert(ctx context.Context, user *types.User) error
+		Create(ctx context.Context, user *types.User) error
 		FindAll(context.Context) ([]*types.User, error)
-		Delete(ctx context.Context) error
+		DeleteAll(ctx context.Context) error
+		Delete(ctx context.Context, id string) error
 		UpdateInfo(ctx context.Context, userID string, user *types.User) error
 	}
 
@@ -93,8 +94,8 @@ func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*ty
 		return nil, err
 	}
 
-	if err := s.Repo.Insert(ctx, user); err != nil {
-		logrus.Errorf("fail to insert: &v", err)
+	if err := s.Repo.Create(ctx, user); err != nil {
+		logrus.Errorf("fail to insert: %v", err)
 		return nil, fmt.Errorf("fail to register: %v", err)
 	}
 	return user.Strip(), nil
@@ -115,7 +116,14 @@ func (s *Service) FindAll(ctx context.Context) ([]*types.User, error) {
 }
 
 func (s *Service) DeleteAll(ctx context.Context) error {
-	if err := s.Repo.Delete(ctx); err != nil {
+	if err := s.Repo.DeleteAll(ctx); err != nil {
+		return nil
+	}
+	return nil
+}
+
+func (s *Service) Delete(ctx context.Context, userID string) error {
+	if err := s.Repo.Delete(ctx, userID); err != nil {
 		return nil
 	}
 	return nil

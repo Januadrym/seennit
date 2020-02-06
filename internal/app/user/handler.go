@@ -3,10 +3,13 @@ package user
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/http/respond"
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -15,6 +18,7 @@ type (
 		SearchUser(ctx context.Context, req *types.User) (*types.User, error)
 		FindAll(ctx context.Context) ([]*types.User, error)
 		DeleteAll(ctx context.Context) error
+		Delete(ctx context.Context, userID string) error
 		Update(ctx context.Context, userID string, user *types.User) error
 	}
 
@@ -85,5 +89,24 @@ func (h *Handler) DeleteAll(w http.ResponseWriter, r *http.Request) {
 	}
 	respond.JSON(w, http.StatusOK, types.BaseResponse{
 		Data: "OK",
+	})
+}
+
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	if id == "" {
+		logrus.WithContext(r.Context()).Info("invalid id")
+		respond.Error(w, fmt.Errorf("invalid id"), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+	if err := h.Svc.Delete(r.Context(), id); err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: types.IDResponse{
+			ID: id,
+		},
 	})
 }

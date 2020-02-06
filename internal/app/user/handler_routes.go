@@ -28,8 +28,14 @@ func (h *Handler) Routes() []router.Route {
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
+			Path:        "/users/{id:[a-z0-9-\\-]+}",
+			Method:      http.MethodDelete,
+			Handler:     h.Delete,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
+		{
 			// just for testing
-			Path:        "/users",
+			Path:        "/users/all",
 			Method:      http.MethodDelete,
 			Handler:     h.DeleteAll,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
