@@ -2,13 +2,16 @@ package policy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Januadrym/seennit/internal/app/auth"
 	"github.com/Januadrym/seennit/internal/app/status"
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/db/mongodb"
+	"github.com/Januadrym/seennit/internal/pkg/validator"
 
 	"github.com/casbin/casbin"
+	mongodbadapter "github.com/casbin/mongodb-adapter"
 	"github.com/sirupsen/logrus"
 )
 
@@ -64,4 +67,38 @@ func (s *Service) Validate(ctx context.Context, obj string, act string) error {
 		return status.Policy().Unauthorized
 	}
 	return nil
+}
+
+func (s *Service) AddPolicy(ctx context.Context, req types.Policy) error {
+	if err := validator.Validate(req); err != nil {
+		return err
+	}
+	if err := s.Validate(ctx, req.Object, ActionPolicyUpdate); err != nil {
+		return err
+	}
+	if err := s.addPolicy(ctx, types.Policy{
+		Subject: req.Subject,
+		Object:  req.Object,
+		Action:  req.Action,
+		Effect:  req.Effect,
+	}); err != nil {
+		logrus.WithContext(ctx).Errorf("fail to add policy, err: %v", err)
+		return fmt.Errorf("fail to add policy: %w", err)
+	}
+	if req.Effect == types.PolicyEffectDeny {
+		return nil
+	}
+	if _, err := s.enforcer.RemovePolicySafe(req.Subject, req.Object, req.Action, types.PolicyEffectDeny); err != nil {
+		logrus.WithContext(ctx).Errorf("fail to cleaned up old policy, err: ", err)
+		return fmt.Errorf("fail to cleaned up old policy: %w", err)
+	}
+
+	return nil
+}
+
+func NewMongoDBCasbinEnforcer(conf CasbinConfig) *casbin.Enforcer {
+	dialInfo := conf.MongoDB.DialInfo()
+	adapter := mongodbadapter.NewAdapterWithDialInfo(dialInfo)
+	enforcer := casbin.NewEnforcer(conf.CongifPath, adapter)
+	return enforcer
 }

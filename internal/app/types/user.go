@@ -22,7 +22,7 @@ type (
 		CreatedAt time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`
 		UpdatedAt time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 		AvatarURL string    `json:"avatar_url,omitempty" bson:"avatar_url,omitempty"`
-		Roles     []string  `json:"roles,omitempty" bson:"roles,omitempty"`
+		Roles     []string  `json:"roles" bson:"roles,omitempty"`
 	}
 
 	// UserInfo struct {

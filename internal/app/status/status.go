@@ -85,9 +85,11 @@ func Success() Status {
 func Auth() AuthStatus {
 	return load().Auth
 }
+
 func Policy() PolicyStatus {
 	return load().Policy
 }
+
 func Community() CommunityStatus {
 	return load().Community
 }

@@ -27,3 +27,21 @@ const (
 	PolicyObjectUser         = "user"
 	PolicyActionUserReadList = "solution:read-list"
 )
+
+// Policy of community
+const (
+	PolicyObjectCommunity       = "community"
+	PolicyActionCommunityCreate = "community:create"
+	PolicyActionCommunityDelete = "community:delete"
+	PolicyActionCommunityUpdate = "community:update"
+	PolicyActionCommunityRead   = "community:read"
+)
+
+// Policy of post
+const (
+	PolicyObjectPost       = "post"
+	PolicyActionPostCreate = "post:create"
+	PolicyActionPostDelete = "post:delete"
+	PolicyActionPostUpdate = "post:update"
+	PolicyActionPostRead   = "post:read"
+)

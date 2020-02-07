@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Januadrym/seennit/internal/app/auth"
 	"github.com/Januadrym/seennit/internal/app/status"
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/db"
@@ -16,7 +17,7 @@ import (
 )
 
 type (
-	repoProvider interface {
+	RepoProvider interface {
 		Create(ctx context.Context, com *types.Community) error
 		FindCommunityByID(ctx context.Context, cID string) (*types.Community, error)
 		FindAllCom(context.Context) ([]*types.Community, error)
@@ -24,16 +25,23 @@ type (
 		Delete(ctx context.Context) error
 	}
 
+	PolicyService interface {
+		AddPolicy(ctx context.Context, req types.Policy) error
+		Validate(ctx context.Context, obj string, act string) error
+	}
+
 	Service struct {
-		Jwt  jwt.SignVerifier
-		Repo repoProvider
+		Jwt    jwt.SignVerifier
+		Repo   RepoProvider
+		policy PolicyService
 	}
 )
 
-func NewService(repo repoProvider, jwtSigner jwt.SignVerifier) *Service {
+func NewService(repo RepoProvider, jwtSigner jwt.SignVerifier, policySvc PolicyService) *Service {
 	return &Service{
-		Repo: repo,
-		Jwt:  jwtSigner,
+		Repo:   repo,
+		Jwt:    jwtSigner,
+		policy: policySvc,
 	}
 }
 
@@ -50,6 +58,10 @@ func (s *Service) CreateCommunity(ctx context.Context, req *types.CommunityReque
 	if err := validator.Validate(req); err != nil {
 		return nil, err
 	}
+	user := auth.FromContext(ctx)
+	logrus.Printf("user create this %v", user)
+	user.Roles = append(user.Roles, "admin")
+
 	comDB, err := s.Repo.FindCommunityByName(ctx, req.CommunityName)
 	if err != nil && !db.IsErrNotFound(err) {
 		logrus.WithContext(ctx).Errorf("failed to check community's name, err: %v", err)
@@ -73,5 +85,16 @@ func (s *Service) CreateCommunity(ctx context.Context, req *types.CommunityReque
 		logrus.Errorf("fail to insert: %v", err)
 		return nil, fmt.Errorf("fail to create community: %v", err)
 	}
+
+	// make owner
+	if err := s.policy.AddPolicy(auth.NewAdminContext(ctx), types.Policy{
+		Subject: user.UserID,
+		Object:  comm.CommunityID,
+		Action:  types.PolicyActionAny,
+		Effect:  types.PolicyEffectAllow,
+	}); err != nil {
+		return nil, err
+	}
+
 	return comm, nil
 }

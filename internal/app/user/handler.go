@@ -17,7 +17,7 @@ type (
 		Register(ctx context.Context, req *types.RegisterRequest) (*types.User, error)
 		SearchUser(ctx context.Context, req *types.User) (*types.User, error)
 		FindAll(ctx context.Context) ([]*types.User, error)
-		DeleteAll(ctx context.Context) error
+		RemoveAll(ctx context.Context) error
 		Delete(ctx context.Context, userID string) error
 		Update(ctx context.Context, userID string, user *types.User) error
 	}
@@ -79,8 +79,8 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Handler) DeleteAll(w http.ResponseWriter, r *http.Request) {
-	err := h.Svc.DeleteAll(r.Context())
+func (h *Handler) DeleteAllUser(w http.ResponseWriter, r *http.Request) {
+	err := h.Svc.RemoveAll(r.Context())
 	if err != nil {
 		respond.JSON(w, http.StatusInternalServerError, types.BaseResponse{
 			Error: "server error",

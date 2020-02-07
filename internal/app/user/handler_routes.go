@@ -3,17 +3,16 @@ package user
 import (
 	"net/http"
 
-	"github.com/Januadrym/seennit/internal/app/auth"
 	"github.com/Januadrym/seennit/internal/pkg/http/router"
 )
 
 func (h *Handler) Routes() []router.Route {
 	return []router.Route{
 		{
-			Path:        "/users",
-			Method:      http.MethodGet,
-			Handler:     h.GetAll,
-			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+			Path:    "/users",
+			Method:  http.MethodGet,
+			Handler: h.GetAll,
+			//Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
 			Path:    "/users/registeration",
@@ -22,23 +21,22 @@ func (h *Handler) Routes() []router.Route {
 		},
 		{
 			// just for testing
-			Path:        "/users/one",
-			Method:      http.MethodGet,
-			Handler:     h.GetUsers,
-			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+			Path:    "/users/one",
+			Method:  http.MethodGet,
+			Handler: h.GetUsers,
+			// Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
-			Path:        "/users/{id:[a-z0-9-\\-]+}",
-			Method:      http.MethodDelete,
-			Handler:     h.Delete,
-			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+			Path:    "/users/{id:[a-z0-9-\\-]+}",
+			Method:  http.MethodDelete,
+			Handler: h.Delete,
+			// Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
 			// just for testing
-			Path:        "/users/all",
-			Method:      http.MethodDelete,
-			Handler:     h.DeleteAll,
-			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+			Path:    "/users/remove/all",
+			Method:  http.MethodDelete,
+			Handler: h.DeleteAllUser,
 		},
 	}
 }

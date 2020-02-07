@@ -39,9 +39,8 @@ editor:
     code: 1400
     status: 500
     message: "File size exceed limit"
-
 community:
   name_taken:
     code: 1600
     status: 400
-    message: "Challenge type not supported"
+    message: "Name taken"

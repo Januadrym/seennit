@@ -17,6 +17,11 @@ const (
 )
 
 func NewRouter() (http.Handler, error) {
+	//Policy
+	policySrv, err := newPolicyService()
+	if err != nil {
+		return nil, err
+	}
 
 	//User
 	userSrv, err := newUserService()
@@ -26,7 +31,7 @@ func NewRouter() (http.Handler, error) {
 	userHandler := newUserHandler(userSrv)
 
 	//Community
-	commSrv, err := newCommunityService()
+	commSrv, err := newCommunityService(policySrv)
 	if err != nil {
 		return nil, err
 	}

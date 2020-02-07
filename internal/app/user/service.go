@@ -89,6 +89,7 @@ func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*ty
 		Email:     req.Email,
 		Password:  pword,
 		CreatedAt: time.Now(),
+		Roles:     nil,
 	}
 	if err := validator.Validate(user); err != nil {
 		return nil, err
@@ -115,7 +116,7 @@ func (s *Service) FindAll(ctx context.Context) ([]*types.User, error) {
 	return info, err
 }
 
-func (s *Service) DeleteAll(ctx context.Context) error {
+func (s *Service) RemoveAll(ctx context.Context) error {
 	if err := s.Repo.DeleteAll(ctx); err != nil {
 		return nil
 	}
