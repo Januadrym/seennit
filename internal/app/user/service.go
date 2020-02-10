@@ -8,9 +8,7 @@ import (
 
 	"github.com/Januadrym/seennit/internal/app/status"
 	"github.com/Januadrym/seennit/internal/app/types"
-	"github.com/Januadrym/seennit/internal/pkg/config/env"
 	"github.com/Januadrym/seennit/internal/pkg/db"
-	"github.com/Januadrym/seennit/internal/pkg/jwt"
 	"github.com/Januadrym/seennit/internal/pkg/validator"
 
 	"github.com/google/uuid"
@@ -30,28 +28,20 @@ type (
 
 	Service struct {
 		Repo repoProvider
-		Conf Config
-		Jwt  jwt.SignVerifier
-	}
-
-	Config struct {
-		ResetPasswordTokenLifetime time.Duration `envconfig:"USER_RESET_PASSWORD_TOKEN_LIFE_TIME" default:"15m"`
 	}
 )
 
-func NewService(conf Config, repo repoProvider, jwtSigner jwt.SignVerifier) *Service {
+func NewService(repo repoProvider) *Service {
 	return &Service{
 		Repo: repo,
-		Conf: conf,
-		Jwt:  jwtSigner,
 	}
 }
 
-func LoadConfigFromEnv() Config {
-	var conf Config
-	env.Load(&conf)
-	return conf
-}
+// func LoadConfigFromEnv() Config {
+// 	var conf Config
+// 	env.Load(&conf)
+// 	return conf
+// }
 
 func (s *Service) SearchUser(ctx context.Context, req *types.User) (*types.User, error) {
 	usr, err := s.Repo.FindUserByMail(ctx, req.Email)
