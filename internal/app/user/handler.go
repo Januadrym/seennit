@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Januadrym/seennit/internal/app/auth"
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/http/respond"
 	"github.com/gorilla/mux"
@@ -108,5 +109,24 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		Data: types.IDResponse{
 			ID: id,
 		},
+	})
+}
+
+func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
+	var user *types.User
+	defer r.Body.Close()
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	authen := auth.FromContext(r.Context())
+	err := h.Svc.Update(r.Context(), authen.UserID, user)
+	if err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: user,
 	})
 }

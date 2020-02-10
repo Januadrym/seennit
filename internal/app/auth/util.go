@@ -9,7 +9,6 @@ import (
 
 func userToClaims(user *types.User, lifeTime time.Duration) jwt.Claims {
 	return jwt.Claims{
-		Role:      user.Roles,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		UserID:    user.UserID,
@@ -25,7 +24,6 @@ func userToClaims(user *types.User, lifeTime time.Duration) jwt.Claims {
 
 func claimsToUser(claims *jwt.Claims) *types.User {
 	return &types.User{
-		Roles:     claims.Role,
 		FirstName: claims.FirstName,
 		LastName:  claims.LastName,
 		UserID:    claims.UserID,

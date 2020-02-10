@@ -18,11 +18,11 @@ import (
 
 type (
 	RepoProvider interface {
-		Create(ctx context.Context, com *types.Community) error
-		FindCommunityByID(ctx context.Context, cID string) (*types.Community, error)
-		FindAllCom(context.Context) ([]*types.Community, error)
-		FindCommunityByName(ctx context.Context, cName string) (*types.Community, error)
-		Delete(ctx context.Context) error
+		Create(ctx context.Context, com *Community) error
+		FindCommunityByID(ctx context.Context, cID string) (*Community, error)
+		FindAllCom(context.Context) ([]*Community, error)
+		FindCommunityByName(ctx context.Context, cName string) (*Community, error)
+		DeleteByID(ctx context.Context, id string) error
 	}
 
 	PolicyService interface {
@@ -45,8 +45,14 @@ func NewService(repo RepoProvider, jwtSigner jwt.SignVerifier, policySvc PolicyS
 	}
 }
 
-func (s *Service) SearchCommunity(ctx context.Context, req *types.Community) (*types.Community, error) {
-	com, err := s.Repo.FindCommunityByID(ctx, req.CommunityID)
+func (s *Service) SearchCommunity(ctx context.Context, req *Community) (*Community, error) {
+	com, err := s.Repo.FindCommunityByID(ctx, req.ID)
+	// check role
+	if err := s.policy.Validate(ctx, com.ID, types.PolicyActionAny); err != nil {
+		logrus.Info("check role info: ", err)
+		return nil, err
+	}
+
 	if err != nil {
 		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
 		return nil, err
@@ -54,15 +60,14 @@ func (s *Service) SearchCommunity(ctx context.Context, req *types.Community) (*t
 	return com, nil
 }
 
-func (s *Service) CreateCommunity(ctx context.Context, req *types.CommunityRequest) (*types.Community, error) {
-	if err := validator.Validate(req); err != nil {
+func (s *Service) CreateCommunity(ctx context.Context, cm *Community) (*Community, error) {
+	if err := validator.Validate(cm); err != nil {
 		return nil, err
 	}
 	user := auth.FromContext(ctx)
-	logrus.Printf("user create this %v", user)
-	user.Roles = append(user.Roles, "admin")
+	logrus.Printf("user create this: %v", user.FirstName)
 
-	comDB, err := s.Repo.FindCommunityByName(ctx, req.CommunityName)
+	comDB, err := s.Repo.FindCommunityByName(ctx, cm.Name)
 	if err != nil && !db.IsErrNotFound(err) {
 		logrus.WithContext(ctx).Errorf("failed to check community's name, err: %v", err)
 		return nil, fmt.Errorf("failed to check community's name, err: %v", err)
@@ -71,12 +76,13 @@ func (s *Service) CreateCommunity(ctx context.Context, req *types.CommunityReque
 		logrus.WithContext(ctx).Errorf("name taken!")
 		return nil, status.Community().NameTaken
 	}
-	comm := &types.Community{
-		CommunityID:   uuid.New().String(),
-		BannerURL:     req.BannerURL,
-		CommunityName: req.CommunityName,
-		CreatedAt:     time.Now(),
-		Description:   req.Description,
+	comm := &Community{
+		ID:          uuid.New().String(),
+		Name:        cm.Name,
+		BannerURL:   cm.BannerURL,
+		Description: cm.Description,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 	if err := validator.Validate(comm); err != nil {
 		return nil, err
@@ -89,7 +95,7 @@ func (s *Service) CreateCommunity(ctx context.Context, req *types.CommunityReque
 	// make owner
 	if err := s.policy.AddPolicy(auth.NewAdminContext(ctx), types.Policy{
 		Subject: user.UserID,
-		Object:  comm.CommunityID,
+		Object:  comm.ID,
 		Action:  types.PolicyActionAny,
 		Effect:  types.PolicyEffectAllow,
 	}); err != nil {
@@ -98,3 +104,18 @@ func (s *Service) CreateCommunity(ctx context.Context, req *types.CommunityReque
 
 	return comm, nil
 }
+
+// TODO-later: status - community don't get deleted, only hidden or archive
+// ATM just delete com for simple usage
+func (s *Service) DeleteCommunity(ctx context.Context, comID string) error {
+	if err := s.policy.Validate(ctx, comID, types.PolicyActionAny); err != nil {
+		logrus.Info("check role info:", err)
+		return err
+	}
+	if err := s.Repo.DeleteByID(ctx, comID); err != nil {
+		return nil
+	}
+	return nil
+}
+
+// TODO update

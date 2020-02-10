@@ -3,16 +3,20 @@ package community
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/http/respond"
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 )
 
 type (
 	service interface {
-		SearchCommunity(ctx context.Context, req *types.Community) (*types.Community, error)
-		CreateCommunity(ctx context.Context, req *types.CommunityRequest) (*types.Community, error)
+		SearchCommunity(ctx context.Context, req *Community) (*Community, error)
+		CreateCommunity(ctx context.Context, req *Community) (*Community, error)
+		DeleteCommunity(ctx context.Context, comID string) error
 	}
 
 	Handler struct {
@@ -27,7 +31,7 @@ func NewHandler(svc service) *Handler {
 }
 
 func (h *Handler) CreateCommunity(w http.ResponseWriter, r *http.Request) {
-	var req types.CommunityRequest
+	var req Community
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -40,5 +44,41 @@ func (h *Handler) CreateCommunity(w http.ResponseWriter, r *http.Request) {
 	}
 	respond.JSON(w, http.StatusOK, types.BaseResponse{
 		Data: comm,
+	})
+}
+
+func (h *Handler) SearchTest(w http.ResponseWriter, r *http.Request) {
+	var req Community
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+	com, err := h.Svc.SearchCommunity(r.Context(), &req)
+	if err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: com,
+	})
+}
+
+func (h *Handler) DeleteComByID(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	if id == "" {
+		logrus.WithContext(r.Context()).Info("invalid id")
+		respond.Error(w, fmt.Errorf("invalid id"), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+	if err := h.Svc.DeleteCommunity(r.Context(), id); err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: types.IDResponse{
+			ID: id,
+		},
 	})
 }

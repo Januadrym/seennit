@@ -79,7 +79,6 @@ func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*ty
 		Email:     req.Email,
 		Password:  pword,
 		CreatedAt: time.Now(),
-		Roles:     nil,
 	}
 	if err := validator.Validate(user); err != nil {
 		return nil, err
@@ -121,6 +120,10 @@ func (s *Service) Delete(ctx context.Context, userID string) error {
 }
 
 func (s *Service) Update(ctx context.Context, userID string, user *types.User) error {
+	if err := validator.Validate(user); err != nil {
+		return err
+	}
+
 	err := s.Repo.UpdateInfo(ctx, userID, user)
 	return err
 }

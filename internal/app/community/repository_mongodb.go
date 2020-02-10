@@ -3,8 +3,6 @@ package community
 import (
 	"context"
 
-	"github.com/Januadrym/seennit/internal/app/types"
-
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 )
@@ -25,41 +23,41 @@ func (r *MongoDBRepository) collection(s *mgo.Session) *mgo.Collection {
 	return s.DB("").C("communities")
 }
 
-func (r *MongoDBRepository) FindCommunityByID(ctx context.Context, cID string) (*types.Community, error) {
+func (r *MongoDBRepository) FindCommunityByID(ctx context.Context, cID string) (*Community, error) {
 	s := r.session.Clone()
 	defer s.Close()
-	var com *types.Community
+	var com *Community
 	if err := r.collection(s).Find(bson.M{
-		"community_ID": cID,
+		"ID": cID,
 	}).One(&com); err != nil {
 		return nil, err
 	}
 	return com, nil
 }
 
-func (r *MongoDBRepository) FindCommunityByName(ctx context.Context, cName string) (*types.Community, error) {
+func (r *MongoDBRepository) FindCommunityByName(ctx context.Context, cName string) (*Community, error) {
 	s := r.session.Clone()
 	defer s.Close()
-	var com *types.Community
+	var com *Community
 	if err := r.collection(s).Find(bson.M{
-		"community_name": cName,
+		"name": cName,
 	}).One(&com); err != nil {
 		return nil, err
 	}
 	return com, nil
 }
 
-func (r *MongoDBRepository) FindAllCom(context.Context) ([]*types.Community, error) {
+func (r *MongoDBRepository) FindAllCom(context.Context) ([]*Community, error) {
 	s := r.session.Clone()
 	defer s.Close()
-	var coms []*types.Community
+	var coms []*Community
 	if err := r.collection(s).Find(nil).All(&coms); err != nil {
 		return nil, err
 	}
 	return coms, nil
 }
 
-func (r *MongoDBRepository) Create(ctx context.Context, com *types.Community) error {
+func (r *MongoDBRepository) Create(ctx context.Context, com *Community) error {
 	s := r.session.Clone()
 	defer s.Close()
 	com.UpdatedAt = com.CreatedAt
@@ -75,4 +73,11 @@ func (r *MongoDBRepository) Delete(ctx context.Context) error {
 	defer s.Close()
 	r.collection(s).RemoveAll(nil)
 	return nil
+}
+
+// redo later
+func (r *MongoDBRepository) DeleteByID(ctx context.Context, id string) error {
+	s := r.session.Clone()
+	defer s.Close()
+	return r.collection(s).Remove(bson.M{"ID": id})
 }
