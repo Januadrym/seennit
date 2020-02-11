@@ -11,7 +11,6 @@ import (
 type (
 	Claims struct {
 		jwt.StandardClaims
-		Role      []string
 		FirstName string
 		LastName  string
 		UserID    string

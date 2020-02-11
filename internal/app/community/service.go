@@ -23,6 +23,7 @@ type (
 		FindAllCom(context.Context) ([]*Community, error)
 		FindCommunityByName(ctx context.Context, cName string) (*Community, error)
 		DeleteByID(ctx context.Context, id string) error
+		EnrollUser(ctx context.Context, idUser string, idCom string) error
 	}
 
 	PolicyService interface {
@@ -117,5 +118,15 @@ func (s *Service) DeleteCommunity(ctx context.Context, comID string) error {
 	}
 	return nil
 }
+
+func (s *Service) GetCommunity(ctx context.Context, name string) (*Community, error) {
+	com, err := s.Repo.FindCommunityByName(ctx, name)
+	if err != nil {
+		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
+	}
+	return com, nil
+}
+
+// TODO enroll
 
 // TODO update

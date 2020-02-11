@@ -12,6 +12,7 @@ func userToClaims(user *types.User, lifeTime time.Duration) jwt.Claims {
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		UserID:    user.UserID,
+		Email:     user.Email,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(lifeTime).Unix(),
 			Id:        user.UserID,

@@ -81,3 +81,13 @@ func (r *MongoDBRepository) DeleteByID(ctx context.Context, id string) error {
 	defer s.Close()
 	return r.collection(s).Remove(bson.M{"ID": id})
 }
+
+func (r *MongoDBRepository) EnrollUser(ctx context.Context, idUser string, idCom string) error {
+	s := r.session.Clone()
+	defer s.Close()
+	return r.collection(s).Update(bson.M{"ID": idCom}, bson.M{
+		"$addToSet": bson.M{
+			"user": idUser,
+		},
+	})
+}

@@ -27,5 +27,11 @@ func (h *Handler) Routes() []router.Route {
 			Handler:     h.DeleteComByID,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
+		{
+			Path:        "/communities/{name:[a-z0-9-\\-]+}",
+			Method:      http.MethodGet,
+			Handler:     h.GetCommunity,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
 	}
 }

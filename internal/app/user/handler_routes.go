@@ -40,7 +40,7 @@ func (h *Handler) Routes() []router.Route {
 		},
 		{
 			// development fuc :)
-			Path:    "/users/remove/all",
+			Path:    "/users/all",
 			Method:  http.MethodDelete,
 			Handler: h.DeleteAllUser,
 		},
