@@ -18,7 +18,7 @@ func (h *Handler) Routes() []router.Route {
 		{
 			Path:        "/communities",
 			Method:      http.MethodGet,
-			Handler:     h.SearchTest,
+			Handler:     h.GetAll,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
@@ -31,6 +31,12 @@ func (h *Handler) Routes() []router.Route {
 			Path:        "/communities/{name:[a-z0-9-\\-]+}",
 			Method:      http.MethodGet,
 			Handler:     h.GetCommunity,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
+		{
+			Path:        "/communities/{name:[a-z0-9-\\-]+}",
+			Method:      http.MethodPut,
+			Handler:     h.EnrollUser,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 	}

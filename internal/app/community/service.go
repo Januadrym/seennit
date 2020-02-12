@@ -46,21 +46,6 @@ func NewService(repo RepoProvider, jwtSigner jwt.SignVerifier, policySvc PolicyS
 	}
 }
 
-func (s *Service) SearchCommunity(ctx context.Context, req *Community) (*Community, error) {
-	com, err := s.Repo.FindCommunityByID(ctx, req.ID)
-	// check role
-	if err := s.policy.Validate(ctx, com.ID, types.PolicyActionAny); err != nil {
-		logrus.Info("check role info: ", err)
-		return nil, err
-	}
-
-	if err != nil {
-		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
-		return nil, err
-	}
-	return com, nil
-}
-
 func (s *Service) CreateCommunity(ctx context.Context, cm *Community) (*Community, error) {
 	if err := validator.Validate(cm); err != nil {
 		return nil, err
@@ -82,6 +67,7 @@ func (s *Service) CreateCommunity(ctx context.Context, cm *Community) (*Communit
 		Name:        cm.Name,
 		BannerURL:   cm.BannerURL,
 		Description: cm.Description,
+		Users:       cm.Users,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
@@ -106,6 +92,30 @@ func (s *Service) CreateCommunity(ctx context.Context, cm *Community) (*Communit
 	return comm, nil
 }
 
+// // check role
+// if err := s.policy.Validate(ctx, com.ID, types.PolicyActionAny); err != nil {
+// 	logrus.Info("check role info: ", err)
+// 	return nil, err
+// }
+
+func (s *Service) SearchCommunity(ctx context.Context, name string) (*Community, error) {
+	com, err := s.Repo.FindCommunityByName(ctx, name)
+	if err != nil {
+		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
+		return nil, err
+	}
+	return com, nil
+}
+
+func (s *Service) GetAll(ctx context.Context) ([]*Community, error) {
+	com, err := s.Repo.FindAllCom(ctx)
+	if err != nil {
+		logrus.WithContext(ctx).Errorf("failed to find communities, err: %v", err)
+		return nil, err
+	}
+	return com, nil
+}
+
 // TODO-later: status - community don't get deleted, only hidden or archive
 // ATM just delete com for simple usage
 func (s *Service) DeleteCommunity(ctx context.Context, comID string) error {
@@ -127,6 +137,14 @@ func (s *Service) GetCommunity(ctx context.Context, name string) (*Community, er
 	return com, nil
 }
 
-// TODO enroll
+func (s *Service) EnrollUser(ctx context.Context, idCom string) error {
+	user := auth.FromContext(ctx)
+	err := s.Repo.EnrollUser(ctx, user.UserID, idCom)
+	if err != nil {
+		logrus.WithContext(ctx).Errorf("failed to enroll user, err: %v", err)
+	}
+	return nil
+
+}
 
 // TODO update

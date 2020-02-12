@@ -87,7 +87,7 @@ func (r *MongoDBRepository) EnrollUser(ctx context.Context, idUser string, idCom
 	defer s.Close()
 	return r.collection(s).Update(bson.M{"ID": idCom}, bson.M{
 		"$addToSet": bson.M{
-			"user": idUser,
+			"users": idUser,
 		},
 	})
 }
