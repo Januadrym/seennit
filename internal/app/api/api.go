@@ -9,11 +9,11 @@ import (
 )
 
 const (
-	get     = http.MethodGet
-	post    = http.MethodPost
-	put     = http.MethodPut
-	delete  = http.MethodDelete
-	options = http.MethodOptions
+	m_get     = http.MethodGet
+	m_post    = http.MethodPost
+	m_put     = http.MethodPut
+	m_delete  = http.MethodDelete
+	m_options = http.MethodOptions
 )
 
 func NewRouter() (http.Handler, error) {
@@ -37,7 +37,13 @@ func NewRouter() (http.Handler, error) {
 	}
 	commHandler := newCommunityHandler(commSrv)
 
-	//
+	//Post
+	postSrv, err := newPostService(policySrv)
+	if err != nil {
+		return nil, err
+	}
+	postHandler := newPostHandler(postSrv)
+
 	jwtSignVerifier := newJWTSignVerifier()
 	authHandler := newAuthHandler(jwtSignVerifier, userSrv)
 	userInfoMiddleware := auth.UserInfoMiddleware(jwtSignVerifier)
@@ -45,7 +51,7 @@ func NewRouter() (http.Handler, error) {
 	routes := []router.Route{
 		{
 			Path:    "/",
-			Method:  get,
+			Method:  m_get,
 			Handler: ServeHTTP,
 		},
 	}
@@ -53,6 +59,7 @@ func NewRouter() (http.Handler, error) {
 	routes = append(routes, userHandler.Routes()...)
 	routes = append(routes, authHandler.Routes()...)
 	routes = append(routes, commHandler.Routes()...)
+	routes = append(routes, postHandler.Routes()...)
 
 	conf := router.LoadConfigFromEnv()
 	conf.Routes = routes

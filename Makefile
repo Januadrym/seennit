@@ -2,7 +2,7 @@ PROJECT_NAME=chocopie
 BUILD_VERSION=$(shell cat VERSION)
 DOCKER_IMAGE=$(PROJECT_NAME):$(BUILD_VERSION)
 GO_BUILD_ENV=CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on
-# GO_FILES=$(shell go list ./... | grep -v /vendor/)
+GO_FILES=$(shell go list ./... | grep -v /vendor/)
 REALIZE_VERSION=2.0.2
 REALIZE_IMAGE=realize:$(REALIZE_VERSION)
 

@@ -48,7 +48,7 @@ func UserInfoMiddleware(verifier jwt.Verifier) func(http.Handler) http.Handler {
 func RequireAuthMiddleware(inner http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if user := FromContext(r.Context()); user == nil {
-			logrus.Errorf("unauthorized", http.StatusUnauthorized)
+			logrus.Errorf("unauthorized, err: %v", http.StatusUnauthorized)
 			respond.Error(w, errors.New("Unauthorized"), http.StatusUnauthorized)
 			return
 		}

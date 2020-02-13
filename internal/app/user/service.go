@@ -124,8 +124,7 @@ func (s *Service) Update(ctx context.Context, userID string, user *types.User) e
 		return err
 	}
 
-	err := s.Repo.UpdateInfo(ctx, userID, user)
-	return err
+	return s.Repo.UpdateInfo(ctx, userID, user)
 }
 
 func (s *Service) Auth(ctx context.Context, email, password string) (*types.User, error) {

@@ -44,3 +44,7 @@ community:
     code: 1600
     status: 400
     message: "Name taken"
+  user_enrolled:
+    code: 1700
+    status: 400
+    message: "User already enrolled"

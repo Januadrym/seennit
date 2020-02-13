@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -29,4 +31,14 @@ func (user *User) Strip() *User {
 	stripedUser := User(*user)
 	stripedUser.Password = ""
 	return &stripedUser
+}
+
+func (user *User) FullName() string {
+	return fmt.Sprintf("%s %s", user.FirstName, user.LastName)
+}
+func (user User) GetName() string {
+	if user.FullName() != "" {
+		return user.FullName()
+	}
+	return strings.Split(user.Email, "@")[0]
 }

@@ -3,8 +3,8 @@ package api
 import (
 	"sync"
 
-	"github.com/globalsign/mgo"
 	"github.com/Januadrym/seennit/internal/pkg/db/mongodb"
+	"github.com/globalsign/mgo"
 )
 
 var (

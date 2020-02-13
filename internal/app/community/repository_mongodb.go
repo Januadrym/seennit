@@ -2,9 +2,11 @@ package community
 
 import (
 	"context"
+	"time"
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -28,7 +30,7 @@ func (r *MongoDBRepository) FindCommunityByID(ctx context.Context, cID string) (
 	defer s.Close()
 	var com *Community
 	if err := r.collection(s).Find(bson.M{
-		"ID": cID,
+		"id": cID,
 	}).One(&com); err != nil {
 		return nil, err
 	}
@@ -79,15 +81,43 @@ func (r *MongoDBRepository) Delete(ctx context.Context) error {
 func (r *MongoDBRepository) DeleteByID(ctx context.Context, id string) error {
 	s := r.session.Clone()
 	defer s.Close()
-	return r.collection(s).Remove(bson.M{"ID": id})
+	return r.collection(s).Remove(bson.M{"id": id})
 }
 
 func (r *MongoDBRepository) EnrollUser(ctx context.Context, idUser string, idCom string) error {
 	s := r.session.Clone()
 	defer s.Close()
-	return r.collection(s).Update(bson.M{"ID": idCom}, bson.M{
+
+	if err := r.collection(s).Update(bson.M{"id": idCom}, bson.M{
 		"$addToSet": bson.M{
 			"users": idUser,
+		},
+	}); err != nil {
+		logrus.Errorf("failed to enroll user, err: %v", err)
+		return err
+	}
+	return nil
+}
+
+func (r *MongoDBRepository) CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error) {
+	s := r.session.Clone()
+	defer s.Close()
+	var com *Community
+	if err := r.collection(s).Find(bson.M{"id": idCom, "users": idUser}).One(&com); err != nil {
+		return "", err
+	}
+	return idUser, nil
+}
+
+func (r *MongoDBRepository) UpdateInfo(ctx context.Context, idCom string, comm *Community) error {
+	s := r.session.Clone()
+	defer s.Close()
+	return r.collection(s).Update(bson.M{"id": idCom}, bson.M{
+		"$set": bson.M{
+			"name":        comm.Name,
+			"description": comm.Description,
+			"banner_URL":  comm.BannerURL,
+			"updated_at":  time.Now(),
 		},
 	})
 }

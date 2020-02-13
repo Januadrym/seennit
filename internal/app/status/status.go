@@ -32,7 +32,8 @@ type (
 	}
 
 	CommunityStatus struct {
-		NameTaken Status `yaml:"name_taken"`
+		NameTaken    Status `yaml:"name_taken"`
+		UserEnrolled Status `yaml:"user_enrolled"`
 	}
 	statuses struct {
 		Gen       GenStatus

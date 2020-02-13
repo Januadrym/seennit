@@ -89,7 +89,7 @@ func (s *Service) AddPolicy(ctx context.Context, req types.Policy) error {
 		return nil
 	}
 	if _, err := s.enforcer.RemovePolicySafe(req.Subject, req.Object, req.Action, types.PolicyEffectDeny); err != nil {
-		logrus.WithContext(ctx).Errorf("fail to cleaned up old policy, err: ", err)
+		logrus.WithContext(ctx).Errorf("fail to cleaned up old policy, err: %v", err)
 		return fmt.Errorf("fail to cleaned up old policy: %w", err)
 	}
 

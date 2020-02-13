@@ -24,6 +24,8 @@ type (
 		FindCommunityByName(ctx context.Context, cName string) (*Community, error)
 		DeleteByID(ctx context.Context, id string) error
 		EnrollUser(ctx context.Context, idUser string, idCom string) error
+		CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error)
+		UpdateInfo(ctx context.Context, idCom string, comm *Community) error
 	}
 
 	PolicyService interface {
@@ -67,7 +69,6 @@ func (s *Service) CreateCommunity(ctx context.Context, cm *Community) (*Communit
 		Name:        cm.Name,
 		BannerURL:   cm.BannerURL,
 		Description: cm.Description,
-		Users:       cm.Users,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
@@ -79,13 +80,17 @@ func (s *Service) CreateCommunity(ctx context.Context, cm *Community) (*Communit
 		return nil, fmt.Errorf("fail to create community: %v", err)
 	}
 
-	// make owner
+	// make owner of community
 	if err := s.policy.AddPolicy(auth.NewAdminContext(ctx), types.Policy{
 		Subject: user.UserID,
 		Object:  comm.ID,
 		Action:  types.PolicyActionAny,
 		Effect:  types.PolicyEffectAllow,
 	}); err != nil {
+		return nil, err
+	}
+	// enroll self
+	if err := s.Repo.EnrollUser(ctx, user.UserID, comm.ID); err != nil {
 		return nil, err
 	}
 
@@ -118,12 +123,12 @@ func (s *Service) GetAll(ctx context.Context) ([]*Community, error) {
 
 // TODO-later: status - community don't get deleted, only hidden or archive
 // ATM just delete com for simple usage
-func (s *Service) DeleteCommunity(ctx context.Context, comID string) error {
-	if err := s.policy.Validate(ctx, comID, types.PolicyActionAny); err != nil {
-		logrus.Info("check role info:", err)
+func (s *Service) DeleteCommunity(ctx context.Context, idCom string) error {
+	if err := s.policy.Validate(ctx, idCom, types.PolicyActionAny); err != nil {
+		logrus.Errorf("unauthorized, not owner, err: %v", err)
 		return err
 	}
-	if err := s.Repo.DeleteByID(ctx, comID); err != nil {
+	if err := s.Repo.DeleteByID(ctx, idCom); err != nil {
 		return nil
 	}
 	return nil
@@ -133,18 +138,33 @@ func (s *Service) GetCommunity(ctx context.Context, name string) (*Community, er
 	com, err := s.Repo.FindCommunityByName(ctx, name)
 	if err != nil {
 		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
+		return nil, err
 	}
 	return com, nil
 }
 
 func (s *Service) EnrollUser(ctx context.Context, idCom string) error {
 	user := auth.FromContext(ctx)
-	err := s.Repo.EnrollUser(ctx, user.UserID, idCom)
-	if err != nil {
+	id, err := s.Repo.CheckUserEnrolled(ctx, user.UserID, idCom)
+	if err != nil && !db.IsErrNotFound(err) {
+		logrus.WithContext(ctx).Errorf("failed to check user in community, err: %v", err)
+		return err
+	}
+	if id != "" {
+		logrus.WithContext(ctx).Errorf("user already enrolled")
+		return status.Community().UserEnrolled
+	}
+	if err := s.Repo.EnrollUser(ctx, user.UserID, idCom); err != nil {
 		logrus.WithContext(ctx).Errorf("failed to enroll user, err: %v", err)
 	}
 	return nil
 
 }
 
-// TODO update
+func (s *Service) UpdateInfo(ctx context.Context, idCom string, comm *Community) error {
+	if err := s.policy.Validate(ctx, idCom, types.PolicyActionAny); err != nil {
+		logrus.Errorf("unauthorized, not owner, err: %v", err)
+		return err
+	}
+	return s.Repo.UpdateInfo(ctx, idCom, comm)
+}

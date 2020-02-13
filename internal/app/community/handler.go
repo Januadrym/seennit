@@ -16,10 +16,11 @@ type (
 	service interface {
 		SearchCommunity(ctx context.Context, name string) (*Community, error)
 		CreateCommunity(ctx context.Context, req *Community) (*Community, error)
-		DeleteCommunity(ctx context.Context, comID string) error
+		DeleteCommunity(ctx context.Context, idCom string) error
 		GetCommunity(ctx context.Context, name string) (*Community, error)
 		EnrollUser(ctx context.Context, idCom string) error
 		GetAll(ctx context.Context) ([]*Community, error)
+		UpdateInfo(ctx context.Context, idCom string, comm *Community) error
 	}
 
 	Handler struct {
@@ -118,5 +119,32 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 	respond.JSON(w, http.StatusOK, types.BaseResponse{
 		Data: list,
+	})
+}
+
+func (h *Handler) UpdateInfo(w http.ResponseWriter, r *http.Request) {
+	var req *Community
+	defer r.Body.Close()
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	comName := mux.Vars(r)["name"]
+	if comName == "" {
+		logrus.WithContext(r.Context()).Info("invalid name")
+		respond.Error(w, fmt.Errorf("invalid name"), http.StatusBadRequest)
+		return
+	}
+	com, err := h.Svc.SearchCommunity(r.Context(), comName)
+	if err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	if err := h.Svc.UpdateInfo(r.Context(), com.ID, req); err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: com,
 	})
 }
