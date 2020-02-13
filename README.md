@@ -8,6 +8,7 @@ This project follows:
 - [Simple blog for sharing Go - robusta](https://github.com/pthethanh/robusta) (mentor's)
 
 *Objective*: Create a web application that people can share news and content or comment on other people’s posts (basically a Reddit clone :) )
+
 *Techs use*: GoLang, MongoDB, Docker
 
 **Note** that this project now is in active development, but do not hesitate to make a pull request.
