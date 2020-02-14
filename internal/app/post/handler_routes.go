@@ -10,9 +10,16 @@ import (
 func (h *Handler) Routes() []router.Route {
 	return []router.Route{
 		{
-			Path:        "/posts",
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/submit",
 			Method:      http.MethodPost,
 			Handler:     h.CreatePost,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
+		{
+			// get all post of one community
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}",
+			Method:      http.MethodGet,
+			Handler:     h.GetAll,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 	}

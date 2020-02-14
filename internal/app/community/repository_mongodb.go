@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/Januadrym/seennit/internal/app/types"
+
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/sirupsen/logrus"
@@ -25,10 +27,10 @@ func (r *MongoDBRepository) collection(s *mgo.Session) *mgo.Collection {
 	return s.DB("").C("communities")
 }
 
-func (r *MongoDBRepository) FindCommunityByID(ctx context.Context, cID string) (*Community, error) {
+func (r *MongoDBRepository) FindCommunityByID(ctx context.Context, cID string) (*types.Community, error) {
 	s := r.session.Clone()
 	defer s.Close()
-	var com *Community
+	var com *types.Community
 	if err := r.collection(s).Find(bson.M{
 		"id": cID,
 	}).One(&com); err != nil {
@@ -37,10 +39,10 @@ func (r *MongoDBRepository) FindCommunityByID(ctx context.Context, cID string) (
 	return com, nil
 }
 
-func (r *MongoDBRepository) FindCommunityByName(ctx context.Context, cName string) (*Community, error) {
+func (r *MongoDBRepository) FindCommunityByName(ctx context.Context, cName string) (*types.Community, error) {
 	s := r.session.Clone()
 	defer s.Close()
-	var com *Community
+	var com *types.Community
 	if err := r.collection(s).Find(bson.M{
 		"name": cName,
 	}).One(&com); err != nil {
@@ -49,17 +51,17 @@ func (r *MongoDBRepository) FindCommunityByName(ctx context.Context, cName strin
 	return com, nil
 }
 
-func (r *MongoDBRepository) FindAllCom(context.Context) ([]*Community, error) {
+func (r *MongoDBRepository) FindAllCom(context.Context) ([]*types.Community, error) {
 	s := r.session.Clone()
 	defer s.Close()
-	var coms []*Community
+	var coms []*types.Community
 	if err := r.collection(s).Find(nil).All(&coms); err != nil {
 		return nil, err
 	}
 	return coms, nil
 }
 
-func (r *MongoDBRepository) Create(ctx context.Context, com *Community) error {
+func (r *MongoDBRepository) Create(ctx context.Context, com *types.Community) error {
 	s := r.session.Clone()
 	defer s.Close()
 	com.UpdatedAt = com.CreatedAt
@@ -102,14 +104,14 @@ func (r *MongoDBRepository) EnrollUser(ctx context.Context, idUser string, idCom
 func (r *MongoDBRepository) CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error) {
 	s := r.session.Clone()
 	defer s.Close()
-	var com *Community
+	var com *types.Community
 	if err := r.collection(s).Find(bson.M{"id": idCom, "users": idUser}).One(&com); err != nil {
 		return "", err
 	}
 	return idUser, nil
 }
 
-func (r *MongoDBRepository) UpdateInfo(ctx context.Context, idCom string, comm *Community) error {
+func (r *MongoDBRepository) UpdateInfo(ctx context.Context, idCom string, comm *types.Community) error {
 	s := r.session.Clone()
 	defer s.Close()
 	return r.collection(s).Update(bson.M{"id": idCom}, bson.M{
@@ -120,4 +122,28 @@ func (r *MongoDBRepository) UpdateInfo(ctx context.Context, idCom string, comm *
 			"updated_at":  time.Now(),
 		},
 	})
+}
+
+func (r *MongoDBRepository) AddPost(ctx context.Context, idPost string, idCom string) error {
+	s := r.session.Clone()
+	defer s.Close()
+	if err := r.collection(s).Update(bson.M{"id": idCom}, bson.M{
+		"$addToSet": bson.M{
+			"posts": idPost,
+		},
+	}); err != nil {
+		logrus.Errorf("failed to added post, err : %v", err)
+		return err
+	}
+	return nil
+}
+
+func (r *MongoDBRepository) GetAllPost(ctx context.Context, idCom string) ([]string, error) {
+	s := r.session.Clone()
+	defer s.Close()
+	var com *types.Community
+	if err := r.collection(s).Find(bson.M{"id": idCom}).One(&com); err != nil {
+		return nil, err
+	}
+	return com.Posts, nil
 }

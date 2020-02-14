@@ -8,13 +8,15 @@ import (
 	"github.com/Januadrym/seennit/internal/app/auth"
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/validator"
+
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
 type (
-	repoProvider interface {
-		Create(ctx context.Context, post *Post) error
+	RepoProvider interface {
+		Create(ctx context.Context, req *Post) error
+		GetAll(ctx context.Context, listID []string) ([]*Post, error)
 	}
 
 	PolicyService interface {
@@ -22,29 +24,38 @@ type (
 		Validate(ctx context.Context, obj string, act string) error
 	}
 
+	CommunityService interface {
+		AddPost(ctx context.Context, idPost string, idCom string) error
+		SearchCommunity(ctx context.Context, name string) (*types.Community, error)
+		GetAllPost(ctx context.Context, idCom string) ([]string, error)
+	}
+
 	Service struct {
-		Repo   repoProvider
-		policy PolicyService
+		Repo      RepoProvider
+		policy    PolicyService
+		community CommunityService
 	}
 )
 
-func NewService(repo repoProvider, policy PolicyService) *Service {
+func NewService(repo RepoProvider, policy PolicyService, community CommunityService) *Service {
 	return &Service{
-		Repo:   repo,
-		policy: policy,
+		Repo:      repo,
+		policy:    policy,
+		community: community,
 	}
 }
-func (s *Service) Create(ctx context.Context, post *Post) (*Post, error) {
-	if err := validator.Validate(post); err != nil {
+func (s *Service) Create(ctx context.Context, req *Post, nameComm string) (*Post, error) {
+	if err := validator.Validate(req); err != nil {
 		return nil, fmt.Errorf("invalid post: %v", err)
 	}
 	thispost := &Post{
 		ID:          uuid.New().String(),
-		Title:       post.Title,
-		Content:     post.Content,
+		Title:       req.Title,
+		Content:     req.Content,
 		CreatedAt:   time.Now(),
 		PublishDate: time.Now(),
 	}
+
 	//track who create this post
 	user := auth.FromContext(ctx)
 	if user != nil {
@@ -59,6 +70,7 @@ func (s *Service) Create(ctx context.Context, post *Post) (*Post, error) {
 		logrus.WithContext(ctx).Errorf("failed to create post, err: %v", err)
 		return nil, fmt.Errorf("failed to insert post: %v", err)
 	}
+
 	// make owner of post
 	if err := s.policy.AddPolicy(auth.NewAdminContext(ctx), types.Policy{
 		Subject: user.UserID,
@@ -68,7 +80,36 @@ func (s *Service) Create(ctx context.Context, post *Post) (*Post, error) {
 	}); err != nil {
 		return nil, err
 	}
+
+	// add post to community
+	com, err := s.community.SearchCommunity(ctx, nameComm)
+	if err != nil {
+		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
+		return nil, err
+	}
+	if err := s.community.AddPost(ctx, thispost.ID, com.ID); err != nil {
+		logrus.WithContext(ctx).Errorf("failed to add post to community, err: %v", err)
+		return nil, err
+	}
+
 	return thispost, nil
 }
 
-// TODO: community has posts
+func (s *Service) GetAll(ctx context.Context, nameComm string) ([]*Post, error) {
+	com, err := s.community.SearchCommunity(ctx, nameComm)
+	if err != nil {
+		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
+		return nil, err
+	}
+	list, err := s.community.GetAllPost(ctx, com.ID)
+	if err != nil {
+		logrus.WithContext(ctx).Errorf("failed to get posts, err: %v", err)
+		return nil, err
+	}
+	listPost, err := s.Repo.GetAll(ctx, list)
+	if err != nil {
+		logrus.WithContext(ctx).Errorf("failed to find post, err: %v", err)
+		return nil, err
+	}
+	return listPost, nil
+}

@@ -36,6 +36,8 @@ func (user *User) Strip() *User {
 func (user *User) FullName() string {
 	return fmt.Sprintf("%s %s", user.FirstName, user.LastName)
 }
+
+//GetName should always be used to get the user name
 func (user User) GetName() string {
 	if user.FullName() != "" {
 		return user.FullName()

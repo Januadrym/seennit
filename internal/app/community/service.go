@@ -18,14 +18,18 @@ import (
 
 type (
 	RepoProvider interface {
-		Create(ctx context.Context, com *Community) error
-		FindCommunityByID(ctx context.Context, cID string) (*Community, error)
-		FindAllCom(context.Context) ([]*Community, error)
-		FindCommunityByName(ctx context.Context, cName string) (*Community, error)
+		Create(ctx context.Context, com *types.Community) error
+		FindCommunityByID(ctx context.Context, cID string) (*types.Community, error)
+		FindAllCom(context.Context) ([]*types.Community, error)
+		FindCommunityByName(ctx context.Context, cName string) (*types.Community, error)
 		DeleteByID(ctx context.Context, id string) error
 		EnrollUser(ctx context.Context, idUser string, idCom string) error
 		CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error)
-		UpdateInfo(ctx context.Context, idCom string, comm *Community) error
+		UpdateInfo(ctx context.Context, idCom string, comm *types.Community) error
+
+		//post
+		AddPost(ctx context.Context, idPost string, idCom string) error
+		GetAllPost(ctx context.Context, idCom string) ([]string, error)
 	}
 
 	PolicyService interface {
@@ -48,7 +52,7 @@ func NewService(repo RepoProvider, jwtSigner jwt.SignVerifier, policySvc PolicyS
 	}
 }
 
-func (s *Service) CreateCommunity(ctx context.Context, cm *Community) (*Community, error) {
+func (s *Service) CreateCommunity(ctx context.Context, cm *types.Community) (*types.Community, error) {
 	if err := validator.Validate(cm); err != nil {
 		return nil, err
 	}
@@ -64,13 +68,15 @@ func (s *Service) CreateCommunity(ctx context.Context, cm *Community) (*Communit
 		logrus.WithContext(ctx).Errorf("name taken!")
 		return nil, status.Community().NameTaken
 	}
-	comm := &Community{
-		ID:          uuid.New().String(),
-		Name:        cm.Name,
-		BannerURL:   cm.BannerURL,
-		Description: cm.Description,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+	comm := &types.Community{
+		ID:            uuid.New().String(),
+		Name:          cm.Name,
+		BannerURL:     cm.BannerURL,
+		Description:   cm.Description,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+		CreatedByID:   user.UserID,
+		CreatedByName: user.GetName(),
 	}
 	if err := validator.Validate(comm); err != nil {
 		return nil, err
@@ -103,7 +109,7 @@ func (s *Service) CreateCommunity(ctx context.Context, cm *Community) (*Communit
 // 	return nil, err
 // }
 
-func (s *Service) SearchCommunity(ctx context.Context, name string) (*Community, error) {
+func (s *Service) SearchCommunity(ctx context.Context, name string) (*types.Community, error) {
 	com, err := s.Repo.FindCommunityByName(ctx, name)
 	if err != nil {
 		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
@@ -112,7 +118,7 @@ func (s *Service) SearchCommunity(ctx context.Context, name string) (*Community,
 	return com, nil
 }
 
-func (s *Service) GetAll(ctx context.Context) ([]*Community, error) {
+func (s *Service) GetAll(ctx context.Context) ([]*types.Community, error) {
 	com, err := s.Repo.FindAllCom(ctx)
 	if err != nil {
 		logrus.WithContext(ctx).Errorf("failed to find communities, err: %v", err)
@@ -134,7 +140,7 @@ func (s *Service) DeleteCommunity(ctx context.Context, idCom string) error {
 	return nil
 }
 
-func (s *Service) GetCommunity(ctx context.Context, name string) (*Community, error) {
+func (s *Service) GetCommunity(ctx context.Context, name string) (*types.Community, error) {
 	com, err := s.Repo.FindCommunityByName(ctx, name)
 	if err != nil {
 		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
@@ -161,10 +167,18 @@ func (s *Service) EnrollUser(ctx context.Context, idCom string) error {
 
 }
 
-func (s *Service) UpdateInfo(ctx context.Context, idCom string, comm *Community) error {
+func (s *Service) UpdateInfo(ctx context.Context, idCom string, comm *types.Community) error {
 	if err := s.policy.Validate(ctx, idCom, types.PolicyActionAny); err != nil {
 		logrus.Errorf("unauthorized, not owner, err: %v", err)
 		return err
 	}
 	return s.Repo.UpdateInfo(ctx, idCom, comm)
+}
+
+func (s *Service) AddPost(ctx context.Context, idPost string, idCom string) error {
+	return s.Repo.AddPost(ctx, idPost, idCom)
+}
+
+func (s *Service) GetAllPost(ctx context.Context, idCom string) ([]string, error) {
+	return s.Repo.GetAllPost(ctx, idCom)
 }

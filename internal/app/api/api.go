@@ -38,7 +38,7 @@ func NewRouter() (http.Handler, error) {
 	commHandler := newCommunityHandler(commSrv)
 
 	//Post
-	postSrv, err := newPostService(policySrv)
+	postSrv, err := newPostService(policySrv, commSrv)
 	if err != nil {
 		return nil, err
 	}

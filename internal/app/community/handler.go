@@ -14,13 +14,13 @@ import (
 
 type (
 	service interface {
-		SearchCommunity(ctx context.Context, name string) (*Community, error)
-		CreateCommunity(ctx context.Context, req *Community) (*Community, error)
+		SearchCommunity(ctx context.Context, name string) (*types.Community, error)
+		CreateCommunity(ctx context.Context, req *types.Community) (*types.Community, error)
 		DeleteCommunity(ctx context.Context, idCom string) error
-		GetCommunity(ctx context.Context, name string) (*Community, error)
+		GetCommunity(ctx context.Context, name string) (*types.Community, error)
 		EnrollUser(ctx context.Context, idCom string) error
-		GetAll(ctx context.Context) ([]*Community, error)
-		UpdateInfo(ctx context.Context, idCom string, comm *Community) error
+		GetAll(ctx context.Context) ([]*types.Community, error)
+		UpdateInfo(ctx context.Context, idCom string, comm *types.Community) error
 	}
 
 	Handler struct {
@@ -35,7 +35,7 @@ func NewHandler(svc service) *Handler {
 }
 
 func (h *Handler) CreateCommunity(w http.ResponseWriter, r *http.Request) {
-	var req Community
+	var req types.Community
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -123,7 +123,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateInfo(w http.ResponseWriter, r *http.Request) {
-	var req *Community
+	var req *types.Community
 	defer r.Body.Close()
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
