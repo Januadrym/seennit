@@ -13,7 +13,7 @@ type (
 	Status    = status.Status
 	GenStatus struct {
 		Success    Status
-		NotFound   Status
+		NotFound   Status `yaml:"not_found"`
 		Timeout    status.Timeout
 		BadRequest Status
 		Internal   Status

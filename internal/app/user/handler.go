@@ -84,7 +84,7 @@ func (h *Handler) DeleteAllUser(w http.ResponseWriter, r *http.Request) {
 	err := h.Svc.RemoveAll(r.Context())
 	if err != nil {
 		respond.JSON(w, http.StatusInternalServerError, types.BaseResponse{
-			Error: "server error",
+			Data: "server error",
 		})
 		return
 	}

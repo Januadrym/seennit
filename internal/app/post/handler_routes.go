@@ -16,11 +16,35 @@ func (h *Handler) Routes() []router.Route {
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
-			// get all post of one community
+			// get all post of a community
 			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}",
 			Method:      http.MethodGet,
 			Handler:     h.GetAll,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
+		{
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/{id:[a-z0-9-\\-]+}",
+			Method:      http.MethodPut,
+			Handler:     h.Update,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
+		{
+			Path:    "/s/{name:[a-z0-9-A-Z-\\-]+}/{id:[a-z0-9-\\-]+}",
+			Method:  http.MethodGet,
+			Handler: h.Get,
+		},
+		{
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/{id:[a-z0-9-\\-]+}",
+			Method:      http.MethodDelete,
+			Handler:     h.Delete, // change status
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
+
+		{
+			// get all post in all community
+			Path:    "/home",
+			Method:  http.MethodGet,
+			Handler: h.GetEntireThing,
 		},
 	}
 }

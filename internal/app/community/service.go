@@ -30,6 +30,7 @@ type (
 		//post
 		AddPost(ctx context.Context, idPost string, idCom string) error
 		GetAllPost(ctx context.Context, idCom string) ([]string, error)
+		CheckContainPost(ctx context.Context, comName, idPost string) (bool, error)
 	}
 
 	PolicyService interface {
@@ -181,4 +182,17 @@ func (s *Service) AddPost(ctx context.Context, idPost string, idCom string) erro
 
 func (s *Service) GetAllPost(ctx context.Context, idCom string) ([]string, error) {
 	return s.Repo.GetAllPost(ctx, idCom)
+}
+
+func (s *Service) CheckContainPost(ctx context.Context, nameCom string, idPost string) error {
+	in, err := s.Repo.CheckContainPost(ctx, nameCom, idPost)
+	if err != nil && !db.IsErrNotFound(err) {
+		logrus.WithContext(ctx).Errorf("failed to check contained post, err: %v", err)
+		return err
+	}
+	if in {
+		return nil
+	}
+	logrus.WithContext(ctx).Errorf("post is not contain in this community %v, err: %v", nameCom, err)
+	return err
 }

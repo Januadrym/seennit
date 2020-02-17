@@ -147,3 +147,13 @@ func (r *MongoDBRepository) GetAllPost(ctx context.Context, idCom string) ([]str
 	}
 	return com.Posts, nil
 }
+
+func (r *MongoDBRepository) CheckContainPost(ctx context.Context, comName, idPost string) (bool, error) {
+	s := r.session.Clone()
+	defer s.Close()
+	var com *types.Community
+	if err := r.collection(s).Find(bson.M{"name": comName, "posts": idPost}).One(&com); err != nil {
+		return false, err
+	}
+	return true, nil
+}
