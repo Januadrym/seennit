@@ -17,12 +17,12 @@ import (
 
 type (
 	service interface {
-		GetEntire(ctx context.Context) ([]*Post, error)
-		Create(ctx context.Context, req *Post, nameComm string) (*Post, error)
-		FindByID(ctx context.Context, id string, nameCom string) (*Post, error)
-		GetAll(ctx context.Context, nameComm string) ([]*Post, error)
-		UpdatePost(ctx context.Context, id string, p *PostUpdateRequest) error
-		ChangeStatus(ctx context.Context, id string, status Status) error
+		GetEntire(ctx context.Context) ([]*types.Post, error)
+		Create(ctx context.Context, req *types.Post, nameComm string) (*types.Post, error)
+		FindByID(ctx context.Context, id string, nameCom string) (*types.Post, error)
+		GetAll(ctx context.Context, nameComm string) ([]*types.Post, error)
+		UpdatePost(ctx context.Context, id string, p *types.PostUpdateRequest) error
+		ChangeStatus(ctx context.Context, id string, status types.Status) error
 	}
 
 	Handler struct {
@@ -37,7 +37,7 @@ func NewHandler(svc service) *Handler {
 }
 
 func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
-	var req Post
+	var req types.Post
 	comName := mux.Vars(r)["name"]
 	if comName == "" {
 		logrus.WithContext(r.Context()).Info("invalid name")
@@ -85,7 +85,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	var req PostUpdateRequest
+	var req types.PostUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respond.Error(w, err, http.StatusBadRequest)
 		return
@@ -122,7 +122,7 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 		respond.Error(w, err, http.StatusInternalServerError)
 		return
 	}
-	if p.Status == StatusPublic {
+	if p.Status == types.StatusPublic {
 		respond.JSON(w, http.StatusOK, types.BaseResponse{
 			Data: p,
 		})
@@ -130,7 +130,7 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 	// display draft post for the owner
 	user := auth.FromContext(r.Context())
-	if p.Status == StatusDraft && user != nil && user.UserID == p.CreatedByID {
+	if p.Status == types.StatusDraft && user != nil && user.UserID == p.CreatedByID {
 		respond.JSON(w, http.StatusOK, types.BaseResponse{
 			Data: p,
 		})
@@ -138,11 +138,32 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 	respond.JSON(w, http.StatusNotFound, types.BaseResponse{
 		Status: status.Gen().NotFound,
-		Data:   "deleted post",
+		Data:   "post not available",
 	})
 	return
 }
 
+//Archive Post: post can no longer be edited or commented
+func (h *Handler) ArchivePost(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	if id == "" {
+		logrus.WithContext(r.Context()).Infof("invalid id")
+		respond.Error(w, fmt.Errorf("invalid id"), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+	if err := h.Svc.ChangeStatus(r.Context(), id, types.StatusArchived); err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: types.IDResponse{
+			ID: id,
+		},
+	})
+}
+
+//for futher delete all posts have status: deleted
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	if id == "" {
@@ -151,7 +172,7 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-	if err := h.Svc.ChangeStatus(r.Context(), id, StatusDelete); err != nil {
+	if err := h.Svc.ChangeStatus(r.Context(), id, types.StatusDelete); err != nil {
 		respond.Error(w, err, http.StatusInternalServerError)
 		return
 	}

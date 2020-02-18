@@ -35,11 +35,16 @@ func (h *Handler) Routes() []router.Route {
 		},
 		{
 			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/{id:[a-z0-9-\\-]+}",
-			Method:      http.MethodDelete,
-			Handler:     h.Delete, // change status
+			Method:      http.MethodPut,
+			Handler:     h.ArchivePost, // change status to archive
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
-
+		{
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/{id:[a-z0-9-\\-]+}",
+			Method:      http.MethodDelete,
+			Handler:     h.Delete, // change status to delete
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
 		{
 			// get all post in all community
 			Path:    "/home",

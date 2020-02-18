@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/sirupsen/logrus"
@@ -25,7 +26,7 @@ func (r *MongoDBRepository) collection(s *mgo.Session) *mgo.Collection {
 	return s.DB("").C("posts")
 }
 
-func (r *MongoDBRepository) Create(ctx context.Context, req *Post) error {
+func (r *MongoDBRepository) Create(ctx context.Context, req *types.Post) error {
 	s := r.sessions.Clone()
 	defer s.Close()
 	req.UpdatedAt = req.CreatedAt
@@ -36,20 +37,20 @@ func (r *MongoDBRepository) Create(ctx context.Context, req *Post) error {
 	return nil
 }
 
-func (r *MongoDBRepository) FindByID(ctx context.Context, id string) (*Post, error) {
+func (r *MongoDBRepository) FindByID(ctx context.Context, id string) (*types.Post, error) {
 	s := r.sessions.Clone()
 	defer s.Close()
-	var p *Post
+	var p *types.Post
 	if err := r.collection(s).Find(bson.M{"id": id}).One(&p); err != nil {
 		return nil, err
 	}
 	return p, nil
 }
 
-func (r *MongoDBRepository) GetAll(ctx context.Context, listID []string) ([]*Post, error) {
+func (r *MongoDBRepository) GetAll(ctx context.Context, listID []string) ([]*types.Post, error) {
 	s := r.sessions.Clone()
 	defer s.Close()
-	var listPost []*Post
+	var listPost []*types.Post
 	if err := r.collection(s).Find(bson.M{"id": bson.M{
 		"$in": listID,
 	}}).All(&listPost); err != nil {
@@ -59,7 +60,7 @@ func (r *MongoDBRepository) GetAll(ctx context.Context, listID []string) ([]*Pos
 	return listPost, nil
 }
 
-func (r *MongoDBRepository) UpdatePost(ctx context.Context, id string, p *PostUpdateRequest) error {
+func (r *MongoDBRepository) UpdatePost(ctx context.Context, id string, p *types.PostUpdateRequest) error {
 	s := r.sessions.Clone()
 	defer s.Close()
 	p.UpdatedAt = time.Now()
@@ -70,7 +71,7 @@ func (r *MongoDBRepository) UpdatePost(ctx context.Context, id string, p *PostUp
 	return nil
 }
 
-func (r *MongoDBRepository) ChangeStatus(ctx context.Context, id string, status Status) error {
+func (r *MongoDBRepository) ChangeStatus(ctx context.Context, id string, status types.Status) error {
 	s := r.sessions.Clone()
 	defer s.Close()
 	if err := r.collection(s).Update(bson.M{"id": id}, bson.M{"$set": bson.M{"status": status}}); err != nil {
@@ -79,10 +80,10 @@ func (r *MongoDBRepository) ChangeStatus(ctx context.Context, id string, status 
 	return nil
 }
 
-func (r *MongoDBRepository) GetEntire(ctx context.Context) ([]*Post, error) {
+func (r *MongoDBRepository) GetEntire(ctx context.Context) ([]*types.Post, error) {
 	s := r.sessions.Clone()
 	defer s.Close()
-	var list []*Post
+	var list []*types.Post
 	if err := r.collection(s).Find(nil).All(&list); err != nil {
 		return nil, err
 	}

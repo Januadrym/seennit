@@ -15,6 +15,3 @@ func newPostService(policy post.PolicyService, comm post.CommunityService) (*pos
 func newPostHandler(svc *post.Service) *post.Handler {
 	return post.NewHandler(svc)
 }
-
-// fix this shit asap
-// module importation???
