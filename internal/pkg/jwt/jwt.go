@@ -46,7 +46,7 @@ const (
 	// DefaultIssuer is default issuer name
 	DefaultIssuer = "seennit"
 	// DefaultLifeTime is default life time of a token
-	DefaultLifeTime = time.Hour * 24
+	DefaultLifeTime = time.Hour * 24 * 100
 )
 
 var (

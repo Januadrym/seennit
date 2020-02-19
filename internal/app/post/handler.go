@@ -19,7 +19,7 @@ type (
 	service interface {
 		GetEntire(ctx context.Context) ([]*types.Post, error)
 		Create(ctx context.Context, req *types.Post, nameComm string) (*types.Post, error)
-		FindByID(ctx context.Context, id string, nameCom string) (*types.Post, error)
+		FindByID(ctx context.Context, id string) (*types.Post, error)
 		GetAll(ctx context.Context, nameComm string) ([]*types.Post, error)
 		UpdatePost(ctx context.Context, id string, p *types.PostUpdateRequest) error
 		ChangeStatus(ctx context.Context, id string, status types.Status) error
@@ -103,12 +103,6 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
-	comName := mux.Vars(r)["name"]
-	if comName == "" {
-		logrus.WithContext(r.Context()).Info("invalid name")
-		respond.Error(w, fmt.Errorf("invalid name"), http.StatusBadRequest)
-		return
-	}
 	id := mux.Vars(r)["id"]
 	if id == "" {
 		logrus.WithContext(r.Context()).Infof("invalid id")
@@ -116,7 +110,7 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p, err := h.Svc.FindByID(r.Context(), id, comName)
+	p, err := h.Svc.FindByID(r.Context(), id)
 	if err != nil {
 		logrus.WithContext(r.Context()).Errorf("post cannot be found, err: %v", err)
 		respond.Error(w, err, http.StatusInternalServerError)

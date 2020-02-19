@@ -5,7 +5,7 @@ import "time"
 type (
 	Comment struct {
 		ID        string `json:"id,omitempty" bson:"id"`
-		PostID    string `json:"post_id,omitempty" bson:"post_id" validate:"required"`
+		PostID    string `json:"post_id,omitempty" bson:"post_id"`
 		Content   string `json:"content,omitempty" bson:"content" validate:"required"`
 		ReplyToID string `json:"reply_to_id,omitempty" bson:"reply_to_id"`
 		Level     int    `json:"level" bson:"level"`

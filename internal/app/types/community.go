@@ -9,8 +9,7 @@ type (
 		Description string `json:"description,omitempty" bson:"description,omitempty"`
 		BannerURL   string `json:"banner_url,omitempty" bson:"banner_url,omitempty"`
 
-		Users []string `json:"users,omitempty" bson:"users,omitempty"`
-		Posts []string `json:"posts,omitempty" bson:"posts,omitempty"`
+		Users []string `json:"users,omitempty" bson:"users,omitempty"` // consider
 
 		CreatedAt     time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`
 		UpdatedAt     time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`

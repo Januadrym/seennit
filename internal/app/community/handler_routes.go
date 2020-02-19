@@ -9,22 +9,23 @@ import (
 
 func (h *Handler) Routes() []router.Route {
 	return []router.Route{
+		// s stand for sub, which mean a community
 		{
 			// create community
-			// Path:        "/communities",
+			Path:        "/s",
 			Method:      http.MethodPost,
 			Handler:     h.CreateCommunity,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
 			// get all community
-			// Path:        "/communities",
+			Path:        "/s",
 			Method:      http.MethodGet,
 			Handler:     h.GetAll,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
-			// Path:        "/communities/{name:[a-z0-9-A-Z-\\-]+}",
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}",
 			Method:      http.MethodGet,
 			Handler:     h.GetCommunity,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
@@ -32,30 +33,30 @@ func (h *Handler) Routes() []router.Route {
 		{
 			// temporary func for delete a community
 			// should have status: active, hidden, archive
-			// Path:        "/communities/{id:[a-z0-9-\\-]+}",
-			Method:      http.MethodDelete,
-			Handler:     h.DeleteComByID,
+			Path:   "/s/{name:[a-z0-9-A-Z-\\-]+}",
+			Method: http.MethodDelete,
+			// Handler:     h.DeleteComByID,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 
 		{
-			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}",
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/enrollment",
 			Method:      http.MethodPut,
 			Handler:     h.EnrollUser,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
-			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/about",
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}",
 			Method:      http.MethodPut,
 			Handler:     h.UpdateInfo,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
-		// TODO
-		// {
-		// 	Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/about",
-		// 	Method:      http.MethodDelete,
-		// 	Handler:     h.DeleteCommunity,
-		// 	Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
-		// },
+		// change status to hidden
+		{
+			Path:   "/s/{name:[a-z0-9-A-Z-\\-]+}",
+			Method: http.MethodPatch,
+			// Handler:     h.DeleteCommunity,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
 	}
 }

@@ -32,7 +32,7 @@ func (h *Handler) Routes() []router.Route {
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
-			// development fuc :)
+			// development fuc - delete this
 			Path:    "/users/one",
 			Method:  http.MethodGet,
 			Handler: h.GetUsers,
@@ -40,7 +40,7 @@ func (h *Handler) Routes() []router.Route {
 		},
 		{
 			// development fuc :)
-			Path:    "/users/all",
+			Path:    "/users",
 			Method:  http.MethodDelete,
 			Handler: h.DeleteAllUser,
 		},

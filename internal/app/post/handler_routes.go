@@ -9,15 +9,16 @@ import (
 
 func (h *Handler) Routes() []router.Route {
 	return []router.Route{
+		// s stand for sub, which mean a community
 		{
-			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/submit",
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/posts",
 			Method:      http.MethodPost,
 			Handler:     h.CreatePost,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
 			// get all post of a community
-			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}",
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/posts",
 			Method:      http.MethodGet,
 			Handler:     h.GetAll,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
@@ -35,7 +36,7 @@ func (h *Handler) Routes() []router.Route {
 		},
 		{
 			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/{id:[a-z0-9-\\-]+}",
-			Method:      http.MethodPut,
+			Method:      http.MethodPatch,
 			Handler:     h.ArchivePost, // change status to archive
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
@@ -47,7 +48,7 @@ func (h *Handler) Routes() []router.Route {
 		},
 		{
 			// get all post in all community
-			Path:    "/home",
+			Path:    "/posts",
 			Method:  http.MethodGet,
 			Handler: h.GetEntireThing,
 		},

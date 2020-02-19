@@ -18,7 +18,7 @@ type (
 		GetEntire(ctx context.Context) ([]*types.Post, error)
 		Create(ctx context.Context, req *types.Post) error
 		FindByID(ctx context.Context, id string) (*types.Post, error)
-		GetAll(ctx context.Context, listID []string) ([]*types.Post, error)
+		GetAllPost(ctx context.Context, idCom string) ([]*types.Post, error)
 		UpdatePost(ctx context.Context, id string, p *types.PostUpdateRequest) error
 		ChangeStatus(ctx context.Context, id string, status types.Status) error
 	}
@@ -29,10 +29,7 @@ type (
 	}
 
 	CommunityService interface {
-		AddPost(ctx context.Context, idPost string, idCom string) error
 		SearchCommunity(ctx context.Context, name string) (*types.Community, error)
-		GetAllPost(ctx context.Context, idCom string) ([]string, error)
-		CheckContainPost(ctx context.Context, nameCom string, idPost string) error
 	}
 
 	Service struct {
@@ -60,6 +57,13 @@ func (s *Service) Create(ctx context.Context, req *types.Post, nameComm string) 
 		CreatedAt:   time.Now(),
 		PublishDate: time.Now(),
 	}
+	// add post to community
+	com, err := s.community.SearchCommunity(ctx, nameComm)
+	if err != nil {
+		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
+		return nil, err
+	}
+	thispost.CommunityID = com.ID
 
 	//track who create this post
 	user := auth.FromContext(ctx)
@@ -86,17 +90,6 @@ func (s *Service) Create(ctx context.Context, req *types.Post, nameComm string) 
 		return nil, err
 	}
 
-	// add post to community
-	com, err := s.community.SearchCommunity(ctx, nameComm)
-	if err != nil {
-		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
-		return nil, err
-	}
-	if err := s.community.AddPost(ctx, thispost.ID, com.ID); err != nil {
-		logrus.WithContext(ctx).Errorf("failed to add post to community, err: %v", err)
-		return nil, err
-	}
-
 	return thispost, nil
 }
 
@@ -106,17 +99,12 @@ func (s *Service) GetAll(ctx context.Context, nameComm string) ([]*types.Post, e
 		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
 		return nil, err
 	}
-	list, err := s.community.GetAllPost(ctx, com.ID)
+	list, err := s.Repo.GetAllPost(ctx, com.ID)
 	if err != nil {
 		logrus.WithContext(ctx).Errorf("failed to get posts, err: %v", err)
 		return nil, err
 	}
-	listPost, err := s.Repo.GetAll(ctx, list)
-	if err != nil {
-		logrus.WithContext(ctx).Errorf("failed to find post, err: %v", err)
-		return nil, err
-	}
-	return listPost, nil
+	return list, nil
 }
 
 func (s *Service) UpdatePost(ctx context.Context, id string, p *types.PostUpdateRequest) error {
@@ -130,12 +118,9 @@ func (s *Service) UpdatePost(ctx context.Context, id string, p *types.PostUpdate
 	return s.Repo.UpdatePost(ctx, id, p)
 }
 
-func (s *Service) FindByID(ctx context.Context, id string, nameCom string) (*types.Post, error) {
+func (s *Service) FindByID(ctx context.Context, id string) (*types.Post, error) {
 	p, err := s.Repo.FindByID(ctx, id)
 	if err != nil {
-		return nil, err
-	}
-	if err := s.community.CheckContainPost(ctx, nameCom, id); err != nil {
 		return nil, err
 	}
 	return p, nil

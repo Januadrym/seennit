@@ -7,14 +7,13 @@ type (
 
 	Post struct {
 		ID          string    `json:"id" bson:"id"`
+		CommunityID string    `json:"community_id" bson:"community_id"`
 		Title       string    `json:"title" bson:"title" validate:"required"`
 		Content     string    `json:"content" bson:"content" validate:"required"`
 		Status      Status    `json:"status" bson:"status"`
 		PublishDate time.Time `json:"publish_date" bson:"publish_date"`
 
 		Views int64 `json:"views" bson:"views"`
-
-		Comments []string `json:"comments" bson:"comments"`
 
 		Upvote   int64 `json:"upvote" bson:"upvote"`
 		Downvote int64 `json:"downvote" bson:"downvote"`

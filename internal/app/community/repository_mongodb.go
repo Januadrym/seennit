@@ -123,37 +123,3 @@ func (r *MongoDBRepository) UpdateInfo(ctx context.Context, idCom string, comm *
 		},
 	})
 }
-
-func (r *MongoDBRepository) AddPost(ctx context.Context, idPost string, idCom string) error {
-	s := r.session.Clone()
-	defer s.Close()
-	if err := r.collection(s).Update(bson.M{"id": idCom}, bson.M{
-		"$addToSet": bson.M{
-			"posts": idPost,
-		},
-	}); err != nil {
-		logrus.Errorf("failed to added post, err : %v", err)
-		return err
-	}
-	return nil
-}
-
-func (r *MongoDBRepository) GetAllPost(ctx context.Context, idCom string) ([]string, error) {
-	s := r.session.Clone()
-	defer s.Close()
-	var com *types.Community
-	if err := r.collection(s).Find(bson.M{"id": idCom}).One(&com); err != nil {
-		return nil, err
-	}
-	return com.Posts, nil
-}
-
-func (r *MongoDBRepository) CheckContainPost(ctx context.Context, comName, idPost string) (bool, error) {
-	s := r.session.Clone()
-	defer s.Close()
-	var com *types.Community
-	if err := r.collection(s).Find(bson.M{"name": comName, "posts": idPost}).One(&com); err != nil {
-		return false, err
-	}
-	return true, nil
-}

@@ -47,13 +47,11 @@ func (r *MongoDBRepository) FindByID(ctx context.Context, id string) (*types.Pos
 	return p, nil
 }
 
-func (r *MongoDBRepository) GetAll(ctx context.Context, listID []string) ([]*types.Post, error) {
+func (r *MongoDBRepository) GetAllPost(ctx context.Context, idCom string) ([]*types.Post, error) {
 	s := r.sessions.Clone()
 	defer s.Close()
 	var listPost []*types.Post
-	if err := r.collection(s).Find(bson.M{"id": bson.M{
-		"$in": listID,
-	}}).All(&listPost); err != nil {
+	if err := r.collection(s).Find(bson.M{"community_id": idCom}).All(&listPost); err != nil {
 		logrus.Errorf("failed to get posts, err : %v", err)
 		return nil, err
 	}
