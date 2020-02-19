@@ -36,5 +36,6 @@ const (
 	StatusPublic   Status = "public"
 	StatusDraft    Status = "draft"
 	StatusDelete   Status = "deleted"
+	StatusPrivate  Status = "private"
 	StatusArchived Status = "archived" // for reading purposes, cannot edit, comment on a archived post
 )

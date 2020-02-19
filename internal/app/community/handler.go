@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Januadrym/seennit/internal/app/status"
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/http/respond"
 	"github.com/gorilla/mux"
@@ -16,7 +17,7 @@ type (
 	service interface {
 		SearchCommunity(ctx context.Context, name string) (*types.Community, error)
 		CreateCommunity(ctx context.Context, req *types.Community) (*types.Community, error)
-		DeleteCommunity(ctx context.Context, idCom string) error
+		PrivateCommunity(ctx context.Context, Com string) error
 		GetCommunity(ctx context.Context, name string) (*types.Community, error)
 		EnrollUser(ctx context.Context, idCom string) error
 		GetAll(ctx context.Context) ([]*types.Community, error)
@@ -51,21 +52,21 @@ func (h *Handler) CreateCommunity(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Handler) DeleteComByID(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	if id == "" {
+func (h *Handler) DeleteCom(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+	if name == "" {
 		logrus.WithContext(r.Context()).Info("invalid id")
 		respond.Error(w, fmt.Errorf("invalid id"), http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
-	if err := h.Svc.DeleteCommunity(r.Context(), id); err != nil {
+	if err := h.Svc.PrivateCommunity(r.Context(), name); err != nil {
 		respond.Error(w, err, http.StatusInternalServerError)
 		return
 	}
 	respond.JSON(w, http.StatusOK, types.BaseResponse{
 		Data: types.IDResponse{
-			ID: id,
+			ID: name,
 		},
 	})
 }
@@ -83,9 +84,17 @@ func (h *Handler) GetCommunity(w http.ResponseWriter, r *http.Request) {
 		respond.Error(w, err, http.StatusInternalServerError)
 		return
 	}
-	respond.JSON(w, http.StatusOK, types.BaseResponse{
-		Data: com,
+	if com.Status == types.StatusPublic {
+		respond.JSON(w, http.StatusOK, types.BaseResponse{
+			Data: com,
+		})
+		return
+	}
+	respond.JSON(w, http.StatusNotFound, types.BaseResponse{
+		Status: status.Gen().NotFound,
+		Data:   "Community not found",
 	})
+	return
 }
 
 func (h *Handler) EnrollUser(w http.ResponseWriter, r *http.Request) {

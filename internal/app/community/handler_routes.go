@@ -31,11 +31,10 @@ func (h *Handler) Routes() []router.Route {
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
-			// temporary func for delete a community
-			// should have status: active, hidden, archive
-			Path:   "/s/{name:[a-z0-9-A-Z-\\-]+}",
-			Method: http.MethodDelete,
-			// Handler:     h.DeleteComByID,
+			// change status to private
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}",
+			Method:      http.MethodDelete,
+			Handler:     h.DeleteCom,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 

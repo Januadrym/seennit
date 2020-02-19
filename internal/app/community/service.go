@@ -22,15 +22,10 @@ type (
 		FindCommunityByID(ctx context.Context, cID string) (*types.Community, error)
 		FindAllCom(context.Context) ([]*types.Community, error)
 		FindCommunityByName(ctx context.Context, cName string) (*types.Community, error)
-		DeleteByID(ctx context.Context, id string) error
+		ChangeStatus(ctx context.Context, id string, status types.Status) error
 		EnrollUser(ctx context.Context, idUser string, idCom string) error
 		CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error)
 		UpdateInfo(ctx context.Context, idCom string, comm *types.Community) error
-
-		// //post
-		// AddPost(ctx context.Context, idPost string, idCom string) error
-		// GetAllPost(ctx context.Context, idCom string) ([]string, error)
-		// CheckContainPost(ctx context.Context, comName, idPost string) (bool, error)
 	}
 
 	PolicyService interface {
@@ -116,6 +111,9 @@ func (s *Service) SearchCommunity(ctx context.Context, name string) (*types.Comm
 		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
 		return nil, err
 	}
+	if com.Status == types.StatusPrivate {
+		return nil, fmt.Errorf("Community not found")
+	}
 	return com, nil
 }
 
@@ -130,12 +128,17 @@ func (s *Service) GetAll(ctx context.Context) ([]*types.Community, error) {
 
 // TODO-later: status - community don't get deleted, only hidden or archive
 // ATM just delete com for simple usage
-func (s *Service) DeleteCommunity(ctx context.Context, idCom string) error {
-	if err := s.policy.Validate(ctx, idCom, types.PolicyActionAny); err != nil {
+func (s *Service) PrivateCommunity(ctx context.Context, Com string) error {
+	com, err := s.SearchCommunity(ctx, Com)
+	if err != nil {
+		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
+		return err
+	}
+	if err := s.policy.Validate(ctx, com.ID, types.PolicyActionAny); err != nil {
 		logrus.Errorf("unauthorized, not owner, err: %v", err)
 		return err
 	}
-	if err := s.Repo.DeleteByID(ctx, idCom); err != nil {
+	if err := s.Repo.ChangeStatus(ctx, com.ID, types.StatusPrivate); err != nil {
 		return nil
 	}
 	return nil
@@ -146,6 +149,9 @@ func (s *Service) GetCommunity(ctx context.Context, name string) (*types.Communi
 	if err != nil {
 		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
 		return nil, err
+	}
+	if com.Status == types.StatusPrivate {
+		return nil, fmt.Errorf("Community not found")
 	}
 	return com, nil
 }

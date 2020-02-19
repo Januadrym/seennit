@@ -65,7 +65,7 @@ func (r *MongoDBRepository) Create(ctx context.Context, com *types.Community) er
 	s := r.session.Clone()
 	defer s.Close()
 	com.UpdatedAt = com.CreatedAt
-
+	com.Status = types.StatusPublic
 	if err := r.collection(s).Insert(com); err != nil {
 		return err
 	}
@@ -80,10 +80,12 @@ func (r *MongoDBRepository) Delete(ctx context.Context) error {
 }
 
 // redo later
-func (r *MongoDBRepository) DeleteByID(ctx context.Context, id string) error {
+func (r *MongoDBRepository) ChangeStatus(ctx context.Context, id string, status types.Status) error {
 	s := r.session.Clone()
 	defer s.Close()
-	return r.collection(s).Remove(bson.M{"id": id})
+	return r.collection(s).Update(bson.M{"id": id}, bson.M{
+		"$set": bson.M{"status": status},
+	})
 }
 
 func (r *MongoDBRepository) EnrollUser(ctx context.Context, idUser string, idCom string) error {
