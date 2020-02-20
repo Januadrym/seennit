@@ -111,10 +111,16 @@ func (s *Service) UpdatePost(ctx context.Context, id string, p *types.PostUpdate
 	if err := validator.Validate(p); err != nil {
 		return fmt.Errorf("invalid post, err: %v", err)
 	}
-	if err := s.policy.Validate(ctx, id, types.PolicyActionPostUpdate); err != nil {
+	if err := s.policy.Validate(ctx, id, types.PolicyActionAny); err != nil {
 		return err
 	}
-	logrus.Info("post service ne:", p)
+	post, err := s.Repo.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if post.Status == types.StatusArchived {
+		return fmt.Errorf("archived post, can no longer be updated")
+	}
 	return s.Repo.UpdatePost(ctx, id, p)
 }
 
@@ -122,6 +128,9 @@ func (s *Service) FindByID(ctx context.Context, id string) (*types.Post, error) 
 	p, err := s.Repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
+	}
+	if p.Status == types.StatusDelete {
+		return nil, fmt.Errorf("Post not found")
 	}
 	return p, nil
 }

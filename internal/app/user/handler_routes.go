@@ -10,9 +10,10 @@ import (
 func (h *Handler) Routes() []router.Route {
 	return []router.Route{
 		{
-			Path:    "/users",
-			Method:  http.MethodGet,
-			Handler: h.GetAll,
+			Path:        "/users",
+			Method:      http.MethodGet,
+			Handler:     h.GetAll,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
 			Path:    "/users/registeration",

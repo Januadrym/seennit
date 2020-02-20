@@ -65,7 +65,7 @@ func (r *MongoDBRepository) Create(ctx context.Context, com *types.Community) er
 	s := r.session.Clone()
 	defer s.Close()
 	com.UpdatedAt = com.CreatedAt
-	com.Status = types.StatusPublic
+	com.Status = types.CommunityStatusPublic
 	if err := r.collection(s).Insert(com); err != nil {
 		return err
 	}
@@ -80,7 +80,7 @@ func (r *MongoDBRepository) Delete(ctx context.Context) error {
 }
 
 // redo later
-func (r *MongoDBRepository) ChangeStatus(ctx context.Context, id string, status types.Status) error {
+func (r *MongoDBRepository) ChangeStatus(ctx context.Context, id string, status types.CommunityStatus) error {
 	s := r.session.Clone()
 	defer s.Close()
 	return r.collection(s).Update(bson.M{"id": id}, bson.M{
@@ -120,7 +120,7 @@ func (r *MongoDBRepository) UpdateInfo(ctx context.Context, idCom string, comm *
 		"$set": bson.M{
 			"name":        comm.Name,
 			"description": comm.Description,
-			"banner_URL":  comm.BannerURL,
+			"banner_url":  comm.BannerURL,
 			"updated_at":  time.Now(),
 		},
 	})

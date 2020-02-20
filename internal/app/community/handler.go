@@ -22,6 +22,8 @@ type (
 		EnrollUser(ctx context.Context, idCom string) error
 		GetAll(ctx context.Context) ([]*types.Community, error)
 		UpdateInfo(ctx context.Context, idCom string, comm *types.Community) error
+
+		PromoteUser(ctx context.Context, idUser string, idCom string) error
 	}
 
 	Handler struct {
@@ -84,7 +86,7 @@ func (h *Handler) GetCommunity(w http.ResponseWriter, r *http.Request) {
 		respond.Error(w, err, http.StatusInternalServerError)
 		return
 	}
-	if com.Status == types.StatusPublic {
+	if com.Status == types.CommunityStatusPublic {
 		respond.JSON(w, http.StatusOK, types.BaseResponse{
 			Data: com,
 		})
@@ -155,5 +157,34 @@ func (h *Handler) UpdateInfo(w http.ResponseWriter, r *http.Request) {
 	}
 	respond.JSON(w, http.StatusOK, types.BaseResponse{
 		Data: com,
+	})
+}
+
+func (h *Handler) PromoteMod(w http.ResponseWriter, r *http.Request) {
+	var req *PromoteRequest
+	defer r.Body.Close()
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	comName := mux.Vars(r)["name"]
+	if comName == "" {
+		logrus.WithContext(r.Context()).Info("invalid name")
+		respond.Error(w, fmt.Errorf("invalid name"), http.StatusBadRequest)
+		return
+	}
+	com, err := h.Svc.SearchCommunity(r.Context(), comName)
+	if err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	if err := h.Svc.PromoteUser(r.Context(), req.ID, com.ID); err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: types.IDResponse{
+			ID: req.ID,
+		},
 	})
 }

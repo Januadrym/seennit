@@ -22,7 +22,7 @@ type (
 		FindCommunityByID(ctx context.Context, cID string) (*types.Community, error)
 		FindAllCom(context.Context) ([]*types.Community, error)
 		FindCommunityByName(ctx context.Context, cName string) (*types.Community, error)
-		ChangeStatus(ctx context.Context, id string, status types.Status) error
+		ChangeStatus(ctx context.Context, id string, status types.CommunityStatus) error
 		EnrollUser(ctx context.Context, idUser string, idCom string) error
 		CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error)
 		UpdateInfo(ctx context.Context, idCom string, comm *types.Community) error
@@ -111,7 +111,7 @@ func (s *Service) SearchCommunity(ctx context.Context, name string) (*types.Comm
 		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
 		return nil, err
 	}
-	if com.Status == types.StatusPrivate {
+	if com.Status == types.CommunityStatusPrivate {
 		return nil, fmt.Errorf("Community not found")
 	}
 	return com, nil
@@ -138,7 +138,7 @@ func (s *Service) PrivateCommunity(ctx context.Context, Com string) error {
 		logrus.Errorf("unauthorized, not owner, err: %v", err)
 		return err
 	}
-	if err := s.Repo.ChangeStatus(ctx, com.ID, types.StatusPrivate); err != nil {
+	if err := s.Repo.ChangeStatus(ctx, com.ID, types.CommunityStatusPrivate); err != nil {
 		return nil
 	}
 	return nil
@@ -150,7 +150,7 @@ func (s *Service) GetCommunity(ctx context.Context, name string) (*types.Communi
 		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
 		return nil, err
 	}
-	if com.Status == types.StatusPrivate {
+	if com.Status == types.CommunityStatusPrivate {
 		return nil, fmt.Errorf("Community not found")
 	}
 	return com, nil
@@ -175,31 +175,25 @@ func (s *Service) EnrollUser(ctx context.Context, idCom string) error {
 }
 
 func (s *Service) UpdateInfo(ctx context.Context, idCom string, comm *types.Community) error {
-	if err := s.policy.Validate(ctx, idCom, types.PolicyActionAny); err != nil {
+	if err := s.policy.Validate(ctx, idCom, types.PolicyActionCommunityUpdate); err != nil {
 		logrus.Errorf("unauthorized, not owner, err: %v", err)
 		return err
 	}
 	return s.Repo.UpdateInfo(ctx, idCom, comm)
 }
 
-// post
-// func (s *Service) AddPost(ctx context.Context, idPost string, idCom string) error {
-// 	return s.Repo.AddPost(ctx, idPost, idCom)
-// }
-
-// func (s *Service) GetAllPost(ctx context.Context, idCom string) ([]string, error) {
-// 	return s.Repo.GetAllPost(ctx, idCom)
-// }
-
-// func (s *Service) CheckContainPost(ctx context.Context, nameCom string, idPost string) error {
-// 	in, err := s.Repo.CheckContainPost(ctx, nameCom, idPost)
-// 	if err != nil && !db.IsErrNotFound(err) {
-// 		logrus.WithContext(ctx).Errorf("failed to check contained post, err: %v", err)
-// 		return err
-// 	}
-// 	if in {
-// 		return nil
-// 	}
-// 	logrus.WithContext(ctx).Errorf("post is not contain in this community %v, err: %v", nameCom, err)
-// 	return err
-// }
+func (s *Service) PromoteUser(ctx context.Context, idUser string, idCom string) error {
+	if err := s.policy.Validate(ctx, idCom, types.PolicyActionAny); err != nil {
+		logrus.Errorf("unauthorized, not owner, err: %v", err)
+		return err
+	}
+	if err := s.policy.AddPolicy(auth.NewAdminContext(ctx), types.Policy{
+		Subject: idUser,
+		Object:  idCom,
+		Action:  types.PolicyActionCommunityUpdate,
+		Effect:  types.PolicyEffectAllow,
+	}); err != nil {
+		return err
+	}
+	return nil
+}

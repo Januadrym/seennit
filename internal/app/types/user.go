@@ -11,7 +11,7 @@ type (
 		FirstName string `validate:"required" json:"first_name"`
 		LastName  string `validate:"required" json:"last_name"`
 		Email     string `validate:"required,email" json:"email"`
-		Password  string `validate:"required" json:"password"`
+		Password  string `validate:"required,gt=3" json:"password"`
 	}
 
 	User struct {
@@ -20,7 +20,6 @@ type (
 		LastName  string    `validate:"required" json:"last_name" bson:"last_name"`
 		Email     string    `validate:"required" json:"email" bson:"email"`
 		Password  string    `json:"password,omitempty" bson:"password,omitempty"`
-		Locked    bool      `json:"locked,omitempty" bson:"locked,omitempty"`
 		CreatedAt time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`
 		UpdatedAt time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 		AvatarURL string    `json:"avatar_url,omitempty" bson:"avatar_url,omitempty"`

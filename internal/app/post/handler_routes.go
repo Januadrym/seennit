@@ -24,24 +24,25 @@ func (h *Handler) Routes() []router.Route {
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
-			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/{id:[a-z0-9-\\-]+}",
+			Path:        "/s/posts/{id:[a-z0-9-\\-]+}",
 			Method:      http.MethodPut,
 			Handler:     h.Update,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
-			Path:    "/s/{name:[a-z0-9-A-Z-\\-]+}/{id:[a-z0-9-\\-]+}",
-			Method:  http.MethodGet,
-			Handler: h.Get,
+			Path:        "/s/posts/{id:[a-z0-9-\\-]+}",
+			Method:      http.MethodGet,
+			Handler:     h.Get,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
-			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/{id:[a-z0-9-\\-]+}",
+			Path:        "/s/posts/{id:[a-z0-9-\\-]+}",
 			Method:      http.MethodPatch,
 			Handler:     h.ArchivePost, // change status to archive
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
-			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/{id:[a-z0-9-\\-]+}",
+			Path:        "/s/posts/{id:[a-z0-9-\\-]+}",
 			Method:      http.MethodDelete,
 			Handler:     h.Delete, // change status to delete
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},

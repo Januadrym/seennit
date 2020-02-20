@@ -90,7 +90,6 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		respond.Error(w, err, http.StatusBadRequest)
 		return
 	}
-	logrus.Info("req ne:", req)
 	if err := h.Svc.UpdatePost(r.Context(), id, &req); err != nil {
 		respond.Error(w, err, http.StatusInternalServerError)
 		return
@@ -113,10 +112,10 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	p, err := h.Svc.FindByID(r.Context(), id)
 	if err != nil {
 		logrus.WithContext(r.Context()).Errorf("post cannot be found, err: %v", err)
-		respond.Error(w, err, http.StatusInternalServerError)
+		respond.Error(w, err, http.StatusBadRequest)
 		return
 	}
-	if p.Status == types.StatusPublic {
+	if p.Status != types.StatusDelete {
 		respond.JSON(w, http.StatusOK, types.BaseResponse{
 			Data: p,
 		})

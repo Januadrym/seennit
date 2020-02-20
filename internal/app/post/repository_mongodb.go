@@ -51,7 +51,7 @@ func (r *MongoDBRepository) GetAllPost(ctx context.Context, idCom string) ([]*ty
 	s := r.sessions.Clone()
 	defer s.Close()
 	var listPost []*types.Post
-	if err := r.collection(s).Find(bson.M{"community_id": idCom}).All(&listPost); err != nil {
+	if err := r.collection(s).Find(bson.M{"community_id": idCom, "status": types.StatusPublic}).All(&listPost); err != nil {
 		logrus.Errorf("failed to get posts, err : %v", err)
 		return nil, err
 	}
@@ -62,7 +62,6 @@ func (r *MongoDBRepository) UpdatePost(ctx context.Context, id string, p *types.
 	s := r.sessions.Clone()
 	defer s.Close()
 	p.UpdatedAt = time.Now()
-	logrus.Info("post mongo ne:", p)
 	if err := r.collection(s).Update(bson.D{{Name: "id", Value: id}}, bson.M{"$set": p}); err != nil {
 		return err
 	}
@@ -82,7 +81,7 @@ func (r *MongoDBRepository) GetEntire(ctx context.Context) ([]*types.Post, error
 	s := r.sessions.Clone()
 	defer s.Close()
 	var list []*types.Post
-	if err := r.collection(s).Find(nil).All(&list); err != nil {
+	if err := r.collection(s).Find(bson.M{"status": types.StatusPublic}).All(&list); err != nil {
 		return nil, err
 	}
 	return list, nil

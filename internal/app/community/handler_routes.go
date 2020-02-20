@@ -50,11 +50,10 @@ func (h *Handler) Routes() []router.Route {
 			Handler:     h.UpdateInfo,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
-		// change status to hidden
 		{
-			Path:   "/s/{name:[a-z0-9-A-Z-\\-]+}",
-			Method: http.MethodPatch,
-			// Handler:     h.DeleteCommunity,
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}",
+			Method:      http.MethodPost,
+			Handler:     h.PromoteMod, //promote user to moderator
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 	}

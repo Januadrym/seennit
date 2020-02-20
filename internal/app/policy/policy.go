@@ -41,11 +41,6 @@ func (s *Service) addPolicy(ctx context.Context, p types.Policy) error {
 	return err
 }
 
-func (s *Service) addGroupingPolicy(ctx context.Context, sub string, group string) error {
-	_, err := s.enforcer.AddGroupingPolicySafe(sub, group)
-	return err
-}
-
 // IsAllowed check if the sub is allowed to do the action on that object.
 func (s *Service) IsAllowed(ctx context.Context, sub string, obj string, act string) bool {
 	ok, err := s.enforcer.EnforceSafe(sub, obj, act)

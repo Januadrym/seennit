@@ -2,11 +2,13 @@ package comment
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Januadrym/seennit/internal/app/auth"
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/validator"
+
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
@@ -24,16 +26,22 @@ type (
 		Validate(ctx context.Context, obj string, act string) error
 	}
 
+	PostService interface {
+		FindByID(ctx context.Context, id string) (*types.Post, error)
+	}
+
 	Service struct {
-		Repo   RepoProvider
-		Policy PolicyService
+		Repo    RepoProvider
+		Policy  PolicyService
+		PostSvc PostService
 	}
 )
 
-func NewService(repo RepoProvider, policy PolicyService) *Service {
+func NewService(repo RepoProvider, policy PolicyService, postsvc PostService) *Service {
 	return &Service{
-		Repo:   repo,
-		Policy: policy,
+		Repo:    repo,
+		Policy:  policy,
+		PostSvc: postsvc,
 	}
 }
 
@@ -45,6 +53,14 @@ func (s *Service) Create(ctx context.Context, req *types.Comment, idPost string)
 	if err := validator.Validate(req); err != nil {
 		logrus.Errorf("invalid comment, err: %v", err)
 		return nil, err
+	}
+	pt, err := s.PostSvc.FindByID(ctx, idPost)
+	if err != nil {
+		logrus.Errorf("failed to find post, err: %v", err)
+		return nil, err
+	}
+	if pt.Status == types.StatusArchived {
+		return nil, fmt.Errorf("cannot comment on this post (archived)")
 	}
 	thisComment := &types.Comment{
 		ID:        uuid.New().String(),

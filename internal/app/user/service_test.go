@@ -30,7 +30,6 @@ func TestRegister(t *testing.T) {
 		LastName:  "Vo",
 		Email:     "this@gmail.com",
 		Password:  "kinkou",
-		Locked:    false,
 		// CreatedAt :time.Time,
 		// UpdatedAt: time.Time,
 	}

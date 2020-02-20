@@ -101,7 +101,6 @@ func (s *Service) FindAll(ctx context.Context) ([]*types.User, error) {
 			FirstName: usr.FirstName,
 			LastName:  usr.LastName,
 			AvatarURL: usr.AvatarURL,
-			Locked:    usr.Locked,
 		})
 	}
 	return info, err

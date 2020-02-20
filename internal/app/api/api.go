@@ -45,7 +45,7 @@ func NewRouter() (http.Handler, error) {
 	postHandler := newPostHandler(postSrv)
 
 	//Comment
-	commentSrv, err := newCommentService(policySrv)
+	commentSrv, err := newCommentService(policySrv, postSrv)
 	if err != nil {
 		return nil, err
 	}
