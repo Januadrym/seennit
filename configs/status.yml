@@ -9,7 +9,7 @@ gen:
     message: "Not found"
   timeout:
     code: 1002
-    status: 500
+    status: 504
     message: "Timeout"
   bad_request:
     code: 1003
@@ -34,12 +34,15 @@ user:
     code: 1300
     status: 400
     message: "Duplicated email"
-editor:
-  file_size_exceed_limit:
-    code: 1400
-    status: 500
-    message: "File size exceed limit"
+  register_fail:
+    code: 1300
+    status: 400
+    message: "Failed to register"
 community:
+  create_failed:
+    code: 1600
+    status: 500
+    message: "Failed to create community"
   name_taken:
     code: 1600
     status: 400
@@ -48,3 +51,17 @@ community:
     code: 1700
     status: 400
     message: "User already enrolled"
+  community_not_found:
+      code: 1800
+      status: 400
+      message: "Community not found"
+post:
+  archived:
+    code: 1900
+    status: 400
+    message: "Post archived, can no longer be updated"
+  post_not_found:
+    code: 1900
+    status: 400
+    message: "Post not found"
+  

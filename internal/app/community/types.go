@@ -2,6 +2,6 @@ package community
 
 type (
 	PromoteRequest struct {
-		ID string `json:id`
+		ID string `json:"id"`
 	}
 )

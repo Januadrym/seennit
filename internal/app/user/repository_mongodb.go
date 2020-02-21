@@ -55,14 +55,6 @@ func (r *MongoDBRepository) FindAll(context.Context) ([]*types.User, error) {
 	return users, nil
 }
 
-// for test and messing around - DEVELOPMENT fuc
-func (r *MongoDBRepository) DeleteAll(ctx context.Context) error {
-	s := r.session.Clone()
-	defer s.Close()
-	r.collection(s).RemoveAll(nil)
-	return nil
-}
-
 func (r *MongoDBRepository) Delete(ctx context.Context, id string) error {
 	s := r.session.Clone()
 	defer s.Close()

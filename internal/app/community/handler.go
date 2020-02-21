@@ -3,12 +3,12 @@ package community
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/Januadrym/seennit/internal/app/status"
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/http/respond"
+
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
@@ -58,7 +58,7 @@ func (h *Handler) DeleteCom(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 	if name == "" {
 		logrus.WithContext(r.Context()).Info("invalid id")
-		respond.Error(w, fmt.Errorf("invalid id"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
@@ -77,7 +77,7 @@ func (h *Handler) GetCommunity(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 	if name == "" {
 		logrus.WithContext(r.Context()).Info("invalid name")
-		respond.Error(w, fmt.Errorf("invalid name"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
@@ -94,7 +94,6 @@ func (h *Handler) GetCommunity(w http.ResponseWriter, r *http.Request) {
 	}
 	respond.JSON(w, http.StatusNotFound, types.BaseResponse{
 		Status: status.Gen().NotFound,
-		Data:   "Community not found",
 	})
 	return
 }
@@ -103,7 +102,7 @@ func (h *Handler) EnrollUser(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 	if name == "" {
 		logrus.WithContext(r.Context()).Info("invalid name")
-		respond.Error(w, fmt.Errorf("invalid name"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
@@ -143,7 +142,7 @@ func (h *Handler) UpdateInfo(w http.ResponseWriter, r *http.Request) {
 	comName := mux.Vars(r)["name"]
 	if comName == "" {
 		logrus.WithContext(r.Context()).Info("invalid name")
-		respond.Error(w, fmt.Errorf("invalid name"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 	com, err := h.Svc.SearchCommunity(r.Context(), comName)
@@ -170,7 +169,7 @@ func (h *Handler) PromoteMod(w http.ResponseWriter, r *http.Request) {
 	comName := mux.Vars(r)["name"]
 	if comName == "" {
 		logrus.WithContext(r.Context()).Info("invalid name")
-		respond.Error(w, fmt.Errorf("invalid name"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 	com, err := h.Svc.SearchCommunity(r.Context(), comName)

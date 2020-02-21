@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/Januadrym/seennit/internal/app/status"
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/http/respond"
+
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
@@ -48,7 +50,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	idPost := mux.Vars(r)["id_post"]
 	if idPost == "" {
 		logrus.WithContext(r.Context()).Info("invalid id")
-		respond.Error(w, fmt.Errorf("invalid id"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -70,7 +72,7 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	idPost := mux.Vars(r)["id_post"]
 	if idPost == "" {
 		logrus.WithContext(r.Context()).Info("invalid id")
-		respond.Error(w, fmt.Errorf("invalid id"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 	comments, err := h.Svc.GetAllComments(r.Context(), idPost)
@@ -87,7 +89,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	if id == "" {
 		logrus.WithContext(r.Context()).Info("invalid id")
-		respond.Error(w, fmt.Errorf("invalid id"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 	var cm *types.Comment
@@ -109,7 +111,7 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	if id == "" {
 		logrus.WithContext(r.Context()).Info("invalid id")
-		respond.Error(w, fmt.Errorf("invalid id"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 	if err := h.Svc.DeleteByID(r.Context(), id); err != nil {

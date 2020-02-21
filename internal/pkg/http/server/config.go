@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	//HTTP server configurations
+	// HTTP server configurations
 	Config struct {
 		Address           string        `envconfig:"HTTP_ADDRESS"`
 		Port              int           `envconfig:"HTTP_PORT"`

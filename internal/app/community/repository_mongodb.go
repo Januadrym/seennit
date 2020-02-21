@@ -79,7 +79,6 @@ func (r *MongoDBRepository) Delete(ctx context.Context) error {
 	return nil
 }
 
-// redo later
 func (r *MongoDBRepository) ChangeStatus(ctx context.Context, id string, status types.CommunityStatus) error {
 	s := r.session.Clone()
 	defer s.Close()

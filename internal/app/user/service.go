@@ -2,8 +2,6 @@ package user
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"time"
 
 	"github.com/Januadrym/seennit/internal/app/status"
@@ -21,7 +19,6 @@ type (
 		FindUserByMail(ctx context.Context, email string) (*types.User, error)
 		Create(ctx context.Context, user *types.User) error
 		FindAll(context.Context) ([]*types.User, error)
-		DeleteAll(ctx context.Context) error
 		Delete(ctx context.Context, id string) error
 		UpdateInfo(ctx context.Context, userID string, user *types.User) error
 	}
@@ -59,7 +56,7 @@ func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*ty
 	userDB, err := s.Repo.FindUserByMail(ctx, req.Email)
 	if err != nil && !db.IsErrNotFound(err) {
 		logrus.WithContext(ctx).Errorf("failed to check user by email, err: %v", err)
-		return nil, fmt.Errorf("failed to check user by email, err: %v", err)
+		return nil, status.Gen().Internal
 	}
 
 	if userDB != nil {
@@ -69,7 +66,7 @@ func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*ty
 
 	pword, err := s.generatePassword(req.Password)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate password: %w", err)
+		return nil, status.Gen().Internal
 	}
 
 	user := &types.User{
@@ -86,7 +83,7 @@ func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*ty
 
 	if err := s.Repo.Create(ctx, user); err != nil {
 		logrus.Errorf("fail to insert: %v", err)
-		return nil, fmt.Errorf("fail to register: %v", err)
+		return nil, status.User().RegisterFail
 	}
 	return user.Strip(), nil
 }
@@ -106,13 +103,6 @@ func (s *Service) FindAll(ctx context.Context) ([]*types.User, error) {
 	return info, err
 }
 
-func (s *Service) RemoveAll(ctx context.Context) error {
-	if err := s.Repo.DeleteAll(ctx); err != nil {
-		return nil
-	}
-	return nil
-}
-
 func (s *Service) Delete(ctx context.Context, userID string) error {
 	if err := s.Repo.Delete(ctx, userID); err != nil {
 		return nil
@@ -124,7 +114,6 @@ func (s *Service) Update(ctx context.Context, userID string, user *types.User) e
 	if err := validator.Validate(user); err != nil {
 		return err
 	}
-
 	return s.Repo.UpdateInfo(ctx, userID, user)
 }
 
@@ -132,15 +121,15 @@ func (s *Service) Auth(ctx context.Context, email, password string) (*types.User
 	user, err := s.Repo.FindUserByMail(ctx, email)
 	if err != nil && !db.IsErrNotFound(err) {
 		logrus.WithContext(ctx).Errorf("failed to check existing user by email, err: %v", err)
-		return nil, errors.New("internal error")
+		return nil, status.Gen().Internal
 	}
 	if db.IsErrNotFound(err) {
 		logrus.WithContext(ctx).Debugf("user not found, email: %s", email)
-		return nil, errors.New("user not found")
+		return nil, status.Gen().Internal
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		logrus.WithContext(ctx).Error("invalid password")
-		return nil, errors.New("invalid password")
+		return nil, status.Gen().Internal
 	}
 	return user.Strip(), nil
 }
@@ -148,7 +137,8 @@ func (s *Service) Auth(ctx context.Context, email, password string) (*types.User
 func (s *Service) generatePassword(pass string) (string, error) {
 	rs, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate password: %w", err)
+		logrus.Errorf("fail to gen password, err: %v", err)
+		return "", status.Gen().Internal
 	}
 	return string(rs), nil
 }

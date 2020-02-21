@@ -14,7 +14,7 @@ func Load(t interface{}) {
 	}
 }
 
-//LoadWithPrefix loads the environment variables with prefix into the provided struct
+// LoadWithPrefix loads the environment variables with prefix into the provided struct
 func LoadWithPrefix(prefix string, t interface{}) {
 	if err := envconfig.Process(prefix, t); err != nil {
 		logrus.Errorf("config: unable to load config for %T: %s", t, err)

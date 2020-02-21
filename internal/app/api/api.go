@@ -17,41 +17,40 @@ const (
 )
 
 func NewRouter() (http.Handler, error) {
-	//Policy
+	// Policy
 	policySrv, err := newPolicyService()
 	if err != nil {
 		return nil, err
 	}
 
-	//User
+	// User
 	userSrv, err := newUserService()
 	if err != nil {
 		return nil, err
 	}
 	userHandler := newUserHandler(userSrv)
 
-	//Community
+	// Community
 	commSrv, err := newCommunityService(policySrv)
 	if err != nil {
 		return nil, err
 	}
 	commHandler := newCommunityHandler(commSrv)
 
-	//Post
+	// Post
 	postSrv, err := newPostService(policySrv, commSrv)
 	if err != nil {
 		return nil, err
 	}
 	postHandler := newPostHandler(postSrv)
 
-	//Comment
+	// Comment
 	commentSrv, err := newCommentService(policySrv, postSrv)
 	if err != nil {
 		return nil, err
 	}
 	commentHandler := newCommentHandler(commentSrv)
 
-	//
 	jwtSignVerifier := newJWTSignVerifier()
 	authHandler := newAuthHandler(jwtSignVerifier, userSrv)
 	userInfoMiddleware := auth.UserInfoMiddleware(jwtSignVerifier)

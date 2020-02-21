@@ -2,10 +2,10 @@ package post
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Januadrym/seennit/internal/app/auth"
+	"github.com/Januadrym/seennit/internal/app/status"
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/validator"
 
@@ -48,7 +48,7 @@ func NewService(repo RepoProvider, policy PolicyService, community CommunityServ
 }
 func (s *Service) Create(ctx context.Context, req *types.Post, nameComm string) (*types.Post, error) {
 	if err := validator.Validate(req); err != nil {
-		return nil, fmt.Errorf("invalid post: %v", err)
+		return nil, status.Gen().BadRequest
 	}
 	thispost := &types.Post{
 		ID:          uuid.New().String(),
@@ -65,7 +65,7 @@ func (s *Service) Create(ctx context.Context, req *types.Post, nameComm string) 
 	}
 	thispost.CommunityID = com.ID
 
-	//track who create this post
+	// track who create this post
 	user := auth.FromContext(ctx)
 	if user != nil {
 		thispost.CreatedByID = user.UserID
@@ -77,7 +77,7 @@ func (s *Service) Create(ctx context.Context, req *types.Post, nameComm string) 
 	}
 	if err := s.Repo.Create(ctx, thispost); err != nil {
 		logrus.WithContext(ctx).Errorf("failed to create post, err: %v", err)
-		return nil, fmt.Errorf("failed to insert post: %v", err)
+		return nil, status.Gen().Internal
 	}
 
 	// make owner of post
@@ -109,7 +109,7 @@ func (s *Service) GetAll(ctx context.Context, nameComm string) ([]*types.Post, e
 
 func (s *Service) UpdatePost(ctx context.Context, id string, p *types.PostUpdateRequest) error {
 	if err := validator.Validate(p); err != nil {
-		return fmt.Errorf("invalid post, err: %v", err)
+		return status.Gen().BadRequest
 	}
 	if err := s.policy.Validate(ctx, id, types.PolicyActionAny); err != nil {
 		return err
@@ -119,7 +119,7 @@ func (s *Service) UpdatePost(ctx context.Context, id string, p *types.PostUpdate
 		return err
 	}
 	if post.Status == types.StatusArchived {
-		return fmt.Errorf("archived post, can no longer be updated")
+		return status.Post().Archived
 	}
 	return s.Repo.UpdatePost(ctx, id, p)
 }
@@ -130,7 +130,7 @@ func (s *Service) FindByID(ctx context.Context, id string) (*types.Post, error) 
 		return nil, err
 	}
 	if p.Status == types.StatusDelete {
-		return nil, fmt.Errorf("Post not found")
+		return nil, status.Post().NotFound
 	}
 	return p, nil
 }

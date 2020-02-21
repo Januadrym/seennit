@@ -12,15 +12,16 @@ import (
 type (
 	Status    = status.Status
 	GenStatus struct {
-		Success    Status
-		NotFound   Status `yaml:"not_found"`
-		Timeout    status.Timeout
-		BadRequest Status
-		Internal   Status
+		Success    Status         `yaml:"success"`
+		NotFound   Status         `yaml:"not_found"`
+		Timeout    status.Timeout `yaml:"timeout"`
+		BadRequest Status         `yaml:"bad_request"`
+		Internal   Status         `yaml:"internal"`
 	}
 
 	UserStatus struct {
 		DuplicatedEmail Status `yaml:"duplicated_email"`
+		RegisterFail    Status `yaml:"register_fail"`
 	}
 
 	AuthStatus struct {
@@ -28,12 +29,18 @@ type (
 	}
 
 	PolicyStatus struct {
-		Unauthorized Status
+		Unauthorized Status `yaml:"unauthorized"`
 	}
 
 	CommunityStatus struct {
 		NameTaken    Status `yaml:"name_taken"`
 		UserEnrolled Status `yaml:"user_enrolled"`
+		NotFound     Status `yaml:"community_not_found"`
+		CreateFail   Status `yaml:"create_failed"`
+	}
+	PostStatus struct {
+		Archived Status `yaml:"archived"`
+		NotFound Status `yaml:"post_not_found"`
 	}
 	statuses struct {
 		Gen       GenStatus
@@ -41,6 +48,7 @@ type (
 		Auth      AuthStatus
 		Policy    PolicyStatus
 		Community CommunityStatus
+		Post      PostStatus
 	}
 )
 
@@ -93,4 +101,7 @@ func Policy() PolicyStatus {
 
 func Community() CommunityStatus {
 	return load().Community
+}
+func Post() PostStatus {
+	return load().Post
 }

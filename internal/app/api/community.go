@@ -8,7 +8,7 @@ func newCommunityService(policy community.PolicyService) (*community.Service, er
 		return nil, err
 	}
 	repo := community.NewMongoDBRepo(s)
-	return community.NewService(repo, newJWTSignVerifier(), policy), nil
+	return community.NewService(repo, policy), nil
 }
 
 func newCommunityHandler(svc *community.Service) *community.Handler {

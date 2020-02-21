@@ -2,17 +2,15 @@ package community
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Januadrym/seennit/internal/app/auth"
 	"github.com/Januadrym/seennit/internal/app/status"
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/db"
-	"github.com/Januadrym/seennit/internal/pkg/jwt"
 	"github.com/Januadrym/seennit/internal/pkg/validator"
-	"github.com/google/uuid"
 
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -34,16 +32,14 @@ type (
 	}
 
 	Service struct {
-		Jwt    jwt.SignVerifier
 		Repo   RepoProvider
 		policy PolicyService
 	}
 )
 
-func NewService(repo RepoProvider, jwtSigner jwt.SignVerifier, policySvc PolicyService) *Service {
+func NewService(repo RepoProvider, policySvc PolicyService) *Service {
 	return &Service{
 		Repo:   repo,
-		Jwt:    jwtSigner,
 		policy: policySvc,
 	}
 }
@@ -58,7 +54,7 @@ func (s *Service) CreateCommunity(ctx context.Context, cm *types.Community) (*ty
 	comDB, err := s.Repo.FindCommunityByName(ctx, cm.Name)
 	if err != nil && !db.IsErrNotFound(err) {
 		logrus.WithContext(ctx).Errorf("failed to check community's name, err: %v", err)
-		return nil, fmt.Errorf("failed to check community's name, err: %v", err)
+		return nil, err
 	}
 	if comDB != nil {
 		logrus.WithContext(ctx).Errorf("name taken!")
@@ -79,7 +75,7 @@ func (s *Service) CreateCommunity(ctx context.Context, cm *types.Community) (*ty
 	}
 	if err := s.Repo.Create(ctx, comm); err != nil {
 		logrus.Errorf("fail to insert: %v", err)
-		return nil, fmt.Errorf("fail to create community: %v", err)
+		return nil, status.Community().CreateFail
 	}
 
 	// make owner of community
@@ -99,12 +95,6 @@ func (s *Service) CreateCommunity(ctx context.Context, cm *types.Community) (*ty
 	return comm, nil
 }
 
-// // check role
-// if err := s.policy.Validate(ctx, com.ID, types.PolicyActionAny); err != nil {
-// 	logrus.Info("check role info: ", err)
-// 	return nil, err
-// }
-
 func (s *Service) SearchCommunity(ctx context.Context, name string) (*types.Community, error) {
 	com, err := s.Repo.FindCommunityByName(ctx, name)
 	if err != nil {
@@ -112,7 +102,7 @@ func (s *Service) SearchCommunity(ctx context.Context, name string) (*types.Comm
 		return nil, err
 	}
 	if com.Status == types.CommunityStatusPrivate {
-		return nil, fmt.Errorf("Community not found")
+		return nil, status.Community().NotFound
 	}
 	return com, nil
 }
@@ -126,8 +116,6 @@ func (s *Service) GetAll(ctx context.Context) ([]*types.Community, error) {
 	return com, nil
 }
 
-// TODO-later: status - community don't get deleted, only hidden or archive
-// ATM just delete com for simple usage
 func (s *Service) PrivateCommunity(ctx context.Context, Com string) error {
 	com, err := s.SearchCommunity(ctx, Com)
 	if err != nil {
@@ -151,7 +139,7 @@ func (s *Service) GetCommunity(ctx context.Context, name string) (*types.Communi
 		return nil, err
 	}
 	if com.Status == types.CommunityStatusPrivate {
-		return nil, fmt.Errorf("Community not found")
+		return nil, status.Community().NotFound
 	}
 	return com, nil
 }

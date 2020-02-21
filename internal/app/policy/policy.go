@@ -2,7 +2,6 @@ package policy
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Januadrym/seennit/internal/app/auth"
 	"github.com/Januadrym/seennit/internal/app/status"
@@ -78,14 +77,14 @@ func (s *Service) AddPolicy(ctx context.Context, req types.Policy) error {
 		Effect:  req.Effect,
 	}); err != nil {
 		logrus.WithContext(ctx).Errorf("fail to add policy, err: %v", err)
-		return fmt.Errorf("fail to add policy: %w", err)
+		return status.Gen().Internal
 	}
 	if req.Effect == types.PolicyEffectDeny {
 		return nil
 	}
 	if _, err := s.enforcer.RemovePolicySafe(req.Subject, req.Object, req.Action, types.PolicyEffectDeny); err != nil {
 		logrus.WithContext(ctx).Errorf("fail to cleaned up old policy, err: %v", err)
-		return fmt.Errorf("fail to cleaned up old policy: %w", err)
+		return status.Gen().Internal
 	}
 
 	return nil

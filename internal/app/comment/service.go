@@ -2,10 +2,10 @@ package comment
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Januadrym/seennit/internal/app/auth"
+	"github.com/Januadrym/seennit/internal/app/status"
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/validator"
 
@@ -60,7 +60,7 @@ func (s *Service) Create(ctx context.Context, req *types.Comment, idPost string)
 		return nil, err
 	}
 	if pt.Status == types.StatusArchived {
-		return nil, fmt.Errorf("cannot comment on this post (archived)")
+		return nil, status.Post().Archived
 	}
 	thisComment := &types.Comment{
 		ID:        uuid.New().String(),
@@ -81,7 +81,7 @@ func (s *Service) Create(ctx context.Context, req *types.Comment, idPost string)
 		logrus.WithContext(ctx).Errorf("failed to add comment, err: %v", err)
 		return nil, err
 	}
-	//make owner
+	// make owner
 	if err := s.Policy.AddPolicy(auth.NewAdminContext(ctx), types.Policy{
 		Subject: user.UserID,
 		Object:  thisComment.ID,

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Januadrym/seennit/internal/app/types"
+
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/sirupsen/logrus"
@@ -51,7 +52,8 @@ func (r *MongoDBRepository) GetAllPost(ctx context.Context, idCom string) ([]*ty
 	s := r.sessions.Clone()
 	defer s.Close()
 	var listPost []*types.Post
-	if err := r.collection(s).Find(bson.M{"community_id": idCom, "status": types.StatusPublic}).All(&listPost); err != nil {
+	param := []types.Status{types.StatusPublic, types.StatusArchived}
+	if err := r.collection(s).Find(bson.M{"community_id": idCom, "status": bson.M{"$in": param}}).All(&listPost); err != nil {
 		logrus.Errorf("failed to get posts, err : %v", err)
 		return nil, err
 	}

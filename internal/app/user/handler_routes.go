@@ -32,18 +32,5 @@ func (h *Handler) Routes() []router.Route {
 			Handler:     h.Update,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
-		{
-			// development fuc - delete this
-			Path:    "/users/one",
-			Method:  http.MethodGet,
-			Handler: h.GetUsers,
-			// Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
-		},
-		{
-			// development fuc :)
-			Path:    "/users",
-			Method:  http.MethodDelete,
-			Handler: h.DeleteAllUser,
-		},
 	}
 }

@@ -3,7 +3,6 @@ package post
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/Januadrym/seennit/internal/app/auth"
@@ -41,7 +40,7 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	comName := mux.Vars(r)["name"]
 	if comName == "" {
 		logrus.WithContext(r.Context()).Info("invalid name")
-		respond.Error(w, fmt.Errorf("invalid name"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -63,7 +62,7 @@ func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	comName := mux.Vars(r)["name"]
 	if comName == "" {
 		logrus.WithContext(r.Context()).Info("invalid name")
-		respond.Error(w, fmt.Errorf("invalid name"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
@@ -81,7 +80,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	if id == "" {
 		logrus.WithContext(r.Context()).Infof("invalid id")
-		respond.Error(w, fmt.Errorf("invalid id"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
@@ -105,7 +104,7 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	if id == "" {
 		logrus.WithContext(r.Context()).Infof("invalid id")
-		respond.Error(w, fmt.Errorf("invalid id"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -136,12 +135,12 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-//Archive Post: post can no longer be edited or commented
+// ArchivePost post can no longer be edited or commented
 func (h *Handler) ArchivePost(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	if id == "" {
 		logrus.WithContext(r.Context()).Infof("invalid id")
-		respond.Error(w, fmt.Errorf("invalid id"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
@@ -156,12 +155,11 @@ func (h *Handler) ArchivePost(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-//for futher delete all posts have status: deleted
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	if id == "" {
 		logrus.WithContext(r.Context()).Infof("invalid id")
-		respond.Error(w, fmt.Errorf("invalid id"), http.StatusBadRequest)
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
@@ -176,6 +174,7 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// GetEntireThing get all post to display in homepage
 func (h *Handler) GetEntireThing(w http.ResponseWriter, r *http.Request) {
 	list, err := h.Svc.GetEntire(r.Context())
 	if err != nil {
