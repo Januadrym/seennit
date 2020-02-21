@@ -3,7 +3,6 @@ package comment
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/Januadrym/seennit/internal/app/types"
