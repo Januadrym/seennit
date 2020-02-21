@@ -130,7 +130,6 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 	respond.JSON(w, http.StatusNotFound, types.BaseResponse{
 		Status: status.Gen().NotFound,
-		Data:   "post not available",
 	})
 	return
 }
