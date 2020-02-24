@@ -15,12 +15,15 @@ import (
 
 type (
 	RepoProvider interface {
-		GetEntire(ctx context.Context) ([]*types.Post, error)
 		Create(ctx context.Context, req *types.Post) error
-		FindByID(ctx context.Context, id string) (*types.Post, error)
 		GetAllPost(ctx context.Context, idCom string) ([]*types.Post, error)
+
+		CheckPostBelongTo(ctx context.Context, idCom string, idPost string) (*types.Post, error)
+		FindByID(ctx context.Context, idPost string) (*types.Post, error)
 		UpdatePost(ctx context.Context, id string, p *types.PostUpdateRequest) error
 		ChangeStatus(ctx context.Context, id string, status types.Status) error
+
+		GetEntire(ctx context.Context) ([]*types.Post, error)
 	}
 
 	PolicyService interface {
@@ -28,28 +31,25 @@ type (
 		Validate(ctx context.Context, obj string, act string) error
 	}
 
-	CommunityService interface {
-		SearchCommunity(ctx context.Context, name string) (*types.Community, error)
+	CommentService interface {
+		Create(ctx context.Context, req *types.Comment, idPost string) (*types.Comment, error)
 	}
 
 	Service struct {
-		Repo      RepoProvider
-		policy    PolicyService
-		community CommunityService
+		Repo       RepoProvider
+		policy     PolicyService
+		cmtService CommentService
 	}
 )
 
-func NewService(repo RepoProvider, policy PolicyService, community CommunityService) *Service {
+func NewService(repo RepoProvider, policy PolicyService, cmtService CommentService) *Service {
 	return &Service{
-		Repo:      repo,
-		policy:    policy,
-		community: community,
+		Repo:       repo,
+		policy:     policy,
+		cmtService: cmtService,
 	}
 }
-func (s *Service) Create(ctx context.Context, req *types.Post, nameComm string) (*types.Post, error) {
-	if err := validator.Validate(req); err != nil {
-		return nil, status.Gen().BadRequest
-	}
+func (s *Service) Create(ctx context.Context, req *types.Post, idCom string) (*types.Post, error) {
 	thispost := &types.Post{
 		ID:          uuid.New().String(),
 		Title:       req.Title,
@@ -57,13 +57,7 @@ func (s *Service) Create(ctx context.Context, req *types.Post, nameComm string) 
 		CreatedAt:   time.Now(),
 		PublishDate: time.Now(),
 	}
-	// add post to community
-	com, err := s.community.SearchCommunity(ctx, nameComm)
-	if err != nil {
-		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
-		return nil, err
-	}
-	thispost.CommunityID = com.ID
+	thispost.CommunityID = idCom
 
 	// track who create this post
 	user := auth.FromContext(ctx)
@@ -93,13 +87,8 @@ func (s *Service) Create(ctx context.Context, req *types.Post, nameComm string) 
 	return thispost, nil
 }
 
-func (s *Service) GetAll(ctx context.Context, nameComm string) ([]*types.Post, error) {
-	com, err := s.community.SearchCommunity(ctx, nameComm)
-	if err != nil {
-		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
-		return nil, err
-	}
-	list, err := s.Repo.GetAllPost(ctx, com.ID)
+func (s *Service) GetAll(ctx context.Context, idCom string) ([]*types.Post, error) {
+	list, err := s.Repo.GetAllPost(ctx, idCom)
 	if err != nil {
 		logrus.WithContext(ctx).Errorf("failed to get posts, err: %v", err)
 		return nil, err
@@ -107,25 +96,8 @@ func (s *Service) GetAll(ctx context.Context, nameComm string) ([]*types.Post, e
 	return list, nil
 }
 
-func (s *Service) UpdatePost(ctx context.Context, id string, p *types.PostUpdateRequest) error {
-	if err := validator.Validate(p); err != nil {
-		return status.Gen().BadRequest
-	}
-	if err := s.policy.Validate(ctx, id, types.PolicyActionAny); err != nil {
-		return err
-	}
-	post, err := s.Repo.FindByID(ctx, id)
-	if err != nil {
-		return err
-	}
-	if post.Status == types.StatusArchived {
-		return status.Post().Archived
-	}
-	return s.Repo.UpdatePost(ctx, id, p)
-}
-
-func (s *Service) FindByID(ctx context.Context, id string) (*types.Post, error) {
-	p, err := s.Repo.FindByID(ctx, id)
+func (s *Service) CheckPostBelongTo(ctx context.Context, idCom string, idPost string) (*types.Post, error) {
+	p, err := s.Repo.CheckPostBelongTo(ctx, idCom, idPost)
 	if err != nil {
 		return nil, err
 	}
@@ -135,12 +107,49 @@ func (s *Service) FindByID(ctx context.Context, id string) (*types.Post, error) 
 	return p, nil
 }
 
-func (s *Service) ChangeStatus(ctx context.Context, id string, status types.Status) error {
-	if err := s.policy.Validate(ctx, id, types.PolicyActionPostUpdate); err != nil {
+func (s *Service) FindByID(ctx context.Context, idPost string) (*types.Post, error) {
+	p, err := s.Repo.FindByID(ctx, idPost)
+	if err != nil {
+		return nil, err
+	}
+	if p.Status == types.StatusDelete {
+		return nil, status.Post().NotFound
+	}
+	return p, nil
+}
+
+func (s *Service) UpdatePost(ctx context.Context, idPost string, p *types.PostUpdateRequest) error {
+	if err := validator.Validate(p); err != nil {
+		return status.Gen().BadRequest
+	}
+	if err := s.policy.Validate(ctx, idPost, types.PolicyActionAny); err != nil {
 		return err
 	}
-	return s.Repo.ChangeStatus(ctx, id, status)
+	post, err := s.Repo.FindByID(ctx, idPost)
+	if err != nil {
+		return err
+	}
+	if post.Status == types.StatusArchived {
+		return status.Post().Archived
+	}
+	return s.Repo.UpdatePost(ctx, idPost, p)
 }
+
+func (s *Service) ChangeStatus(ctx context.Context, idPost string, stat types.Status) error {
+	if err := s.policy.Validate(ctx, idPost, types.PolicyActionPostUpdate); err != nil {
+		return err
+	}
+	_, err := s.FindByID(ctx, idPost)
+	if err != nil {
+		return status.Gen().NotFound
+	}
+	return s.Repo.ChangeStatus(ctx, idPost, stat)
+}
+
+// Get entire
+// get all post in all community
+// homepage
+// TODO: ranking by vote
 
 func (s *Service) GetEntire(ctx context.Context) ([]*types.Post, error) {
 	list, err := s.Repo.GetEntire(ctx)
@@ -149,4 +158,22 @@ func (s *Service) GetEntire(ctx context.Context) ([]*types.Post, error) {
 		return nil, err
 	}
 	return list, nil
+}
+
+// Comments
+func (s *Service) CreateComment(ctx context.Context, req *types.Comment, idPost string) (*types.Comment, error) {
+	pt, err := s.FindByID(ctx, idPost)
+	if err != nil {
+		logrus.Errorf("failed to find post, err: %v", err)
+		return nil, err
+	}
+	if pt.Status == types.StatusArchived {
+		return nil, status.Post().Archived
+	}
+	p, err := s.cmtService.Create(ctx, req, idPost)
+	if err != nil {
+		logrus.Errorf("failed to create comment, err: %v", err)
+		return nil, status.Gen().Internal
+	}
+	return p, nil
 }

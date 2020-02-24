@@ -21,7 +21,7 @@ func (h *Handler) Routes() []router.Route {
 			// get all community
 			Path:        "/s",
 			Method:      http.MethodGet,
-			Handler:     h.GetAll,
+			Handler:     h.GetAllCommunity,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
@@ -54,6 +54,21 @@ func (h *Handler) Routes() []router.Route {
 			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}",
 			Method:      http.MethodPost,
 			Handler:     h.PromoteMod, //promote user to moderator
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
+		// Posts
+		{
+			// submit one post
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/posts",
+			Method:      http.MethodPost,
+			Handler:     h.SubmitPost,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
+		{
+			// get all post of one community
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/posts",
+			Method:      http.MethodGet,
+			Handler:     h.GetAllPosts,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 	}

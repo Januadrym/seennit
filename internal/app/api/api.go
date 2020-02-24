@@ -30,26 +30,26 @@ func NewRouter() (http.Handler, error) {
 	}
 	userHandler := newUserHandler(userSrv)
 
-	// Community
-	commSrv, err := newCommunityService(policySrv)
+	// Comment
+	commentSrv, err := newCommentService(policySrv)
 	if err != nil {
 		return nil, err
 	}
-	commHandler := newCommunityHandler(commSrv)
+	commentHandler := newCommentHandler(commentSrv)
 
 	// Post
-	postSrv, err := newPostService(policySrv, commSrv)
+	postSrv, err := newPostService(policySrv, commentSrv)
 	if err != nil {
 		return nil, err
 	}
 	postHandler := newPostHandler(postSrv)
 
-	// Comment
-	commentSrv, err := newCommentService(policySrv, postSrv)
+	// Community
+	commSrv, err := newCommunityService(policySrv, postSrv, userSrv)
 	if err != nil {
 		return nil, err
 	}
-	commentHandler := newCommentHandler(commentSrv)
+	commHandler := newCommunityHandler(commSrv)
 
 	jwtSignVerifier := newJWTSignVerifier()
 	authHandler := newAuthHandler(jwtSignVerifier, userSrv)
@@ -59,7 +59,7 @@ func NewRouter() (http.Handler, error) {
 		{
 			Path:    "/",
 			Method:  m_get,
-			Handler: ServeHTTP,
+			Handler: postHandler.GetEntireThing,
 		},
 	}
 

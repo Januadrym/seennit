@@ -38,11 +38,21 @@ func (r *MongoDBRepository) Create(ctx context.Context, req *types.Post) error {
 	return nil
 }
 
-func (r *MongoDBRepository) FindByID(ctx context.Context, id string) (*types.Post, error) {
+func (r *MongoDBRepository) CheckPostBelongTo(ctx context.Context, idCom string, idPost string) (*types.Post, error) {
 	s := r.sessions.Clone()
 	defer s.Close()
 	var p *types.Post
-	if err := r.collection(s).Find(bson.M{"id": id}).One(&p); err != nil {
+	if err := r.collection(s).Find(bson.M{"community_id": idCom, "id": idPost}).One(&p); err != nil {
+		return nil, err
+	}
+	return p, nil
+}
+
+func (r *MongoDBRepository) FindByID(ctx context.Context, idPost string) (*types.Post, error) {
+	s := r.sessions.Clone()
+	defer s.Close()
+	var p *types.Post
+	if err := r.collection(s).Find(bson.M{"id": idPost}).One(&p); err != nil {
 		return nil, err
 	}
 	return p, nil

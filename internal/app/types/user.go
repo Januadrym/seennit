@@ -15,14 +15,21 @@ type (
 	}
 
 	User struct {
-		UserID    string    `json:"user_id,omitempty" bson:"user_id,omitempty"`
-		FirstName string    `validate:"required" json:"first_name" bson:"first_name"`
-		LastName  string    `validate:"required" json:"last_name" bson:"last_name"`
-		Email     string    `validate:"required" json:"email" bson:"email"`
-		Password  string    `json:"password,omitempty" bson:"password,omitempty"`
+		UserID    string `json:"id,omitempty" bson:"id,omitempty"`
+		FirstName string `validate:"required" json:"first_name" bson:"first_name"`
+		LastName  string `validate:"required" json:"last_name" bson:"last_name"`
+		AvatarURL string `json:"avatar_url,omitempty" bson:"avatar_url,omitempty"`
+
+		Email    string `validate:"required" json:"email" bson:"email"`
+		Password string `json:"password,omitempty" bson:"password,omitempty"`
+
 		CreatedAt time.Time `json:"created_at,omitempty" bson:"created_at,omitempty"`
 		UpdatedAt time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
-		AvatarURL string    `json:"avatar_url,omitempty" bson:"avatar_url,omitempty"`
+
+		Communities []string `json:"communities,omitempty" bson:"communities"`
+
+		KarmaPoints  uint32   `json:"karma_points,omitempty" bson:"karma_points,omitempty"`
+		Achievements []string `json:"achievements,omitempty" bson:"achievements,omitempty"`
 	}
 )
 

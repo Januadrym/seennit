@@ -9,49 +9,40 @@ import (
 
 func (h *Handler) Routes() []router.Route {
 	return []router.Route{
-		// s stand for sub, which mean a community
 		{
-			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/posts",
-			Method:      http.MethodPost,
-			Handler:     h.CreatePost,
-			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
-		},
-		{
-			// get all post of a community
-			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/posts",
+			// get one post
+			Path:        "/posts/{id:[a-z0-9-\\-]+}",
 			Method:      http.MethodGet,
-			Handler:     h.GetAll,
+			Handler:     h.GetPost,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
-			Path:        "/s/posts/{id:[a-z0-9-\\-]+}",
+			Path:        "/posts/{id:[a-z0-9-\\-]+}",
 			Method:      http.MethodPut,
-			Handler:     h.Update,
+			Handler:     h.UpdatePost,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
-			Path:        "/s/posts/{id:[a-z0-9-\\-]+}",
-			Method:      http.MethodGet,
-			Handler:     h.Get,
-			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
-		},
-		{
-			Path:        "/s/posts/{id:[a-z0-9-\\-]+}",
+			// change status to archive
+			Path:        "/posts/{id:[a-z0-9-\\-]+}",
 			Method:      http.MethodPatch,
-			Handler:     h.ArchivePost, // change status to archive
+			Handler:     h.ArchivePost,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
-			Path:        "/s/posts/{id:[a-z0-9-\\-]+}",
+			// change status to delete
+			Path:        "/posts/{id:[a-z0-9-\\-]+}",
 			Method:      http.MethodDelete,
-			Handler:     h.Delete, // change status to delete
+			Handler:     h.DeletePost,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
+
+		// Comments
 		{
-			// get all post in all community
-			Path:    "/posts",
-			Method:  http.MethodGet,
-			Handler: h.GetEntireThing,
+			Path:        "/posts/{id:[a-z0-9-\\-]+}/comments",
+			Method:      http.MethodPost,
+			Handler:     h.CreateComment, // creating comment
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 	}
 }

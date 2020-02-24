@@ -22,8 +22,11 @@ type (
 		EnrollUser(ctx context.Context, idCom string) error
 		GetAll(ctx context.Context) ([]*types.Community, error)
 		UpdateInfo(ctx context.Context, idCom string, comm *types.Community) error
-
+		// Policy
 		PromoteUser(ctx context.Context, idUser string, idCom string) error
+		// Post
+		SubmitPost(ctx context.Context, nameComm string, req *types.Post) (*types.Post, error)
+		GetAllPosts(ctx context.Context, nameComm string) ([]*types.Post, error)
 	}
 
 	Handler struct {
@@ -98,29 +101,7 @@ func (h *Handler) GetCommunity(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (h *Handler) EnrollUser(w http.ResponseWriter, r *http.Request) {
-	name := mux.Vars(r)["name"]
-	if name == "" {
-		logrus.WithContext(r.Context()).Info("invalid name")
-		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()
-	com, err := h.Svc.SearchCommunity(r.Context(), name)
-	if err != nil {
-		respond.Error(w, err, http.StatusInternalServerError)
-		return
-	}
-	if err := h.Svc.EnrollUser(r.Context(), com.ID); err != nil {
-		respond.Error(w, err, http.StatusInternalServerError)
-		return
-	}
-	respond.JSON(w, http.StatusOK, types.BaseResponse{
-		Data: com,
-	})
-}
-
-func (h *Handler) GetAll(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetAllCommunity(w http.ResponseWriter, r *http.Request) {
 	list, err := h.Svc.GetAll(r.Context())
 	if err != nil {
 		logrus.WithContext(r.Context()).Errorf("failed to get all communities, err: %v", err)
@@ -159,6 +140,30 @@ func (h *Handler) UpdateInfo(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Users
+
+func (h *Handler) EnrollUser(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+	if name == "" {
+		logrus.WithContext(r.Context()).Info("invalid name")
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+	com, err := h.Svc.SearchCommunity(r.Context(), name)
+	if err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	if err := h.Svc.EnrollUser(r.Context(), com.ID); err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: com,
+	})
+}
+
 func (h *Handler) PromoteMod(w http.ResponseWriter, r *http.Request) {
 	var req *PromoteRequest
 	defer r.Body.Close()
@@ -185,5 +190,48 @@ func (h *Handler) PromoteMod(w http.ResponseWriter, r *http.Request) {
 		Data: types.IDResponse{
 			ID: req.ID,
 		},
+	})
+}
+
+// Post part
+
+func (h *Handler) SubmitPost(w http.ResponseWriter, r *http.Request) {
+	var req *types.Post
+	comName := mux.Vars(r)["name"]
+	if comName == "" {
+		logrus.WithContext(r.Context()).Info("invalid name")
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
+		return
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+	post, err := h.Svc.SubmitPost(r.Context(), comName, req)
+	if err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: post,
+	})
+}
+
+func (h *Handler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
+	comName := mux.Vars(r)["name"]
+	if comName == "" {
+		logrus.WithContext(r.Context()).Info("invalid name")
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+	posts, err := h.Svc.GetAllPosts(r.Context(), comName)
+	if err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: posts,
 	})
 }

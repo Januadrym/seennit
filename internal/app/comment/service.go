@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Januadrym/seennit/internal/app/auth"
-	"github.com/Januadrym/seennit/internal/app/status"
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/validator"
 
@@ -26,22 +25,16 @@ type (
 		Validate(ctx context.Context, obj string, act string) error
 	}
 
-	PostService interface {
-		FindByID(ctx context.Context, id string) (*types.Post, error)
-	}
-
 	Service struct {
-		Repo    RepoProvider
-		Policy  PolicyService
-		PostSvc PostService
+		Repo   RepoProvider
+		Policy PolicyService
 	}
 )
 
-func NewService(repo RepoProvider, policy PolicyService, postsvc PostService) *Service {
+func NewService(repo RepoProvider, policy PolicyService) *Service {
 	return &Service{
-		Repo:    repo,
-		Policy:  policy,
-		PostSvc: postsvc,
+		Repo:   repo,
+		Policy: policy,
 	}
 }
 
@@ -54,14 +47,14 @@ func (s *Service) Create(ctx context.Context, req *types.Comment, idPost string)
 		logrus.Errorf("invalid comment, err: %v", err)
 		return nil, err
 	}
-	pt, err := s.PostSvc.FindByID(ctx, idPost)
-	if err != nil {
-		logrus.Errorf("failed to find post, err: %v", err)
-		return nil, err
-	}
-	if pt.Status == types.StatusArchived {
-		return nil, status.Post().Archived
-	}
+	// pt, err := s.PostSvc.FindByID(ctx, idPost)
+	// if err != nil {
+	// 	logrus.Errorf("failed to find post, err: %v", err)
+	// 	return nil, err
+	// }
+	// if pt.Status == types.StatusArchived {
+	// 	return nil, status.Post().Archived
+	// }
 	thisComment := &types.Comment{
 		ID:        uuid.New().String(),
 		Content:   req.Content,

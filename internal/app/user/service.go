@@ -21,6 +21,8 @@ type (
 		FindAll(context.Context) ([]*types.User, error)
 		Delete(ctx context.Context, id string) error
 		UpdateInfo(ctx context.Context, userID string, user *types.User) error
+		EnrollUser(ctx context.Context, idUser string, idCom string) error
+		CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error)
 	}
 
 	Service struct {
@@ -141,4 +143,12 @@ func (s *Service) generatePassword(pass string) (string, error) {
 		return "", status.Gen().Internal
 	}
 	return string(rs), nil
+}
+
+func (s *Service) EnrollUser(ctx context.Context, idCom, idUser string) error {
+	return s.Repo.EnrollUser(ctx, idUser, idCom)
+}
+
+func (s *Service) CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error) {
+	return s.Repo.CheckUserEnrolled(ctx, idUser, idCom)
 }

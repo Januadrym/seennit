@@ -8,7 +8,6 @@ import (
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
-	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -85,31 +84,6 @@ func (r *MongoDBRepository) ChangeStatus(ctx context.Context, id string, status 
 	return r.collection(s).Update(bson.M{"id": id}, bson.M{
 		"$set": bson.M{"status": status},
 	})
-}
-
-func (r *MongoDBRepository) EnrollUser(ctx context.Context, idUser string, idCom string) error {
-	s := r.session.Clone()
-	defer s.Close()
-
-	if err := r.collection(s).Update(bson.M{"id": idCom}, bson.M{
-		"$addToSet": bson.M{
-			"users": idUser,
-		},
-	}); err != nil {
-		logrus.Errorf("failed to enroll user, err: %v", err)
-		return err
-	}
-	return nil
-}
-
-func (r *MongoDBRepository) CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error) {
-	s := r.session.Clone()
-	defer s.Close()
-	var com *types.Community
-	if err := r.collection(s).Find(bson.M{"id": idCom, "users": idUser}).One(&com); err != nil {
-		return "", err
-	}
-	return idUser, nil
 }
 
 func (r *MongoDBRepository) UpdateInfo(ctx context.Context, idCom string, comm *types.Community) error {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -20,6 +21,10 @@ func NewMongoDBRepo(session *mgo.Session) *MongoDBRepository {
 	return &MongoDBRepository{
 		session: session,
 	}
+}
+
+func (r *MongoDBRepository) collection(s *mgo.Session) *mgo.Collection {
+	return s.DB("").C("users")
 }
 
 func (r *MongoDBRepository) Create(ctx context.Context, user *types.User) error {
@@ -58,13 +63,13 @@ func (r *MongoDBRepository) FindAll(context.Context) ([]*types.User, error) {
 func (r *MongoDBRepository) Delete(ctx context.Context, id string) error {
 	s := r.session.Clone()
 	defer s.Close()
-	return r.collection(s).Remove(bson.M{"user_id": id})
+	return r.collection(s).Remove(bson.M{"id": id})
 }
 
 func (r *MongoDBRepository) UpdateInfo(ctx context.Context, userID string, user *types.User) error {
 	s := r.session.Clone()
 	defer s.Close()
-	return r.collection(s).Update(bson.M{"user_id": userID}, bson.M{
+	return r.collection(s).Update(bson.M{"id": userID}, bson.M{
 		"$set": bson.M{
 			"first_name": user.FirstName,
 			"last_name":  user.LastName,
@@ -75,6 +80,27 @@ func (r *MongoDBRepository) UpdateInfo(ctx context.Context, userID string, user 
 	})
 }
 
-func (r *MongoDBRepository) collection(s *mgo.Session) *mgo.Collection {
-	return s.DB("").C("users")
+func (r *MongoDBRepository) EnrollUser(ctx context.Context, idUser string, idCom string) error {
+	s := r.session.Clone()
+	defer s.Close()
+
+	if err := r.collection(s).Update(bson.M{"id": idUser}, bson.M{
+		"$addToSet": bson.M{
+			"communities": idCom,
+		},
+	}); err != nil {
+		logrus.Errorf("failed to enroll user, err: %v", err)
+		return err
+	}
+	return nil
+}
+
+func (r *MongoDBRepository) CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error) {
+	s := r.session.Clone()
+	defer s.Close()
+	var com *types.Community
+	if err := r.collection(s).Find(bson.M{"id": idCom, "users": idUser}).One(&com); err != nil {
+		return "", err
+	}
+	return idUser, nil
 }

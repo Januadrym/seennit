@@ -15,9 +15,9 @@ func (h *Handler) Routes() []router.Route {
 			Handler: h.GetAll,
 		},
 		{
-			Path:        "/comments/{id_post:[a-z0-9-\\-]+}",
-			Method:      http.MethodPost,
-			Handler:     h.Create,
+			Path:   "/comments/{id_post:[a-z0-9-\\-]+}",
+			Method: http.MethodPost,
+			// Handler:     h.Create,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 		{
