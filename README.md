@@ -9,7 +9,7 @@ This project follows:
 
 ***Objective***: Create a web application that people can share news and submit content (a Reddit clone)
 
-***Techs use***: GoLang, MongoDB, Docker
+***Tech used***: GoLang, MongoDB, Docker
 
 ***Status***: still in active development
 
