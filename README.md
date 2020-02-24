@@ -5,13 +5,13 @@ I made this project while learning the GO programming language
 
 This project follows:
 - [golang-standards/project-layout](https://github.com/golang-standards/project-layout)
-- [Simple blog for sharing Go - robusta](https://github.com/pthethanh/robusta) (mentor's)
+- [Simple blog for sharing Go - robusta](https://github.com/pthethanh/robusta)
 
-*Objective*: Create a web application that people can share news and content or comment on other people’s posts (basically a Reddit clone :) )
+***Objective***: Create a web application that people can share news and submit content (a Reddit clone)
 
-*Techs use*: GoLang, MongoDB, Docker
+***Techs use***: GoLang, MongoDB, Docker
 
-**Note** that this project now is in active development, but do not hesitate to make a pull request.
+***Status***: still in active development
 
 
 ### Authors
@@ -26,6 +26,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Acknowledgments
 * Inspiration
-
-going just fine
-'cause i'm kinda lost
+* Learning
+* Creating
