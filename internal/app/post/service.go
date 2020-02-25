@@ -33,6 +33,7 @@ type (
 
 	CommentService interface {
 		Create(ctx context.Context, req *types.Comment, idPost string) (*types.Comment, error)
+		GetCommentsPost(ctx context.Context, idPost string) ([]*types.Comment, error)
 	}
 
 	Service struct {
@@ -176,4 +177,8 @@ func (s *Service) CreateComment(ctx context.Context, req *types.Comment, idPost 
 		return nil, status.Gen().Internal
 	}
 	return p, nil
+}
+
+func (s *Service) GetCommentsPost(ctx context.Context, idPost string) ([]*types.Comment, error) {
+	return s.cmtService.GetCommentsPost(ctx, idPost)
 }

@@ -47,14 +47,6 @@ func (s *Service) Create(ctx context.Context, req *types.Comment, idPost string)
 		logrus.Errorf("invalid comment, err: %v", err)
 		return nil, err
 	}
-	// pt, err := s.PostSvc.FindByID(ctx, idPost)
-	// if err != nil {
-	// 	logrus.Errorf("failed to find post, err: %v", err)
-	// 	return nil, err
-	// }
-	// if pt.Status == types.StatusArchived {
-	// 	return nil, status.Post().Archived
-	// }
 	thisComment := &types.Comment{
 		ID:        uuid.New().String(),
 		Content:   req.Content,
@@ -87,7 +79,7 @@ func (s *Service) Create(ctx context.Context, req *types.Comment, idPost string)
 	return thisComment, nil
 }
 
-func (s *Service) GetAllComments(ctx context.Context, idPost string) ([]*types.Comment, error) {
+func (s *Service) GetCommentsPost(ctx context.Context, idPost string) ([]*types.Comment, error) {
 	list, err := s.Repo.FindCommentPost(ctx, idPost)
 	if err != nil {
 		logrus.WithContext(ctx).Errorf("failed to find comments, err: %v", err)
@@ -110,6 +102,5 @@ func (s *Service) DeleteByID(ctx context.Context, id string) error {
 		logrus.Errorf("unauthorized, not owner, err: %v", err)
 		return err
 	}
-
 	return s.Repo.DeleteByID(ctx, id)
 }

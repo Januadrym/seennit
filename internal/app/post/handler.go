@@ -22,6 +22,7 @@ type (
 		ChangeStatus(ctx context.Context, idPost string, stat types.Status) error
 
 		CreateComment(ctx context.Context, req *types.Comment, idPost string) (*types.Comment, error)
+		GetCommentsPost(ctx context.Context, idPost string) ([]*types.Comment, error)
 	}
 	Handler struct {
 		Svc service
@@ -157,5 +158,22 @@ func (h *Handler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	}
 	respond.JSON(w, http.StatusOK, types.BaseResponse{
 		Data: comment,
+	})
+}
+
+func (h *Handler) GetCommentsPost(w http.ResponseWriter, r *http.Request) {
+	idPost := mux.Vars(r)["id"]
+	if idPost == "" {
+		logrus.WithContext(r.Context()).Info("invalid id")
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
+		return
+	}
+	comments, err := h.Svc.GetCommentsPost(r.Context(), idPost)
+	if err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: comments,
 	})
 }
