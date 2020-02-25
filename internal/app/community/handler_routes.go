@@ -50,13 +50,22 @@ func (h *Handler) Routes() []router.Route {
 			Handler:     h.UpdateInfo,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
+		// Policy stuff
 		{
-			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}",
+			//promote user to moderator
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/users",
 			Method:      http.MethodPost,
-			Handler:     h.PromoteMod, //promote user to moderator
+			Handler:     h.PromoteMod,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
-		// Posts
+		{
+			// get all enrolled users
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/users",
+			Method:      http.MethodGet,
+			Handler:     h.GetUsers,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
+		// Posts stuff
 		{
 			// submit one post
 			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/posts",

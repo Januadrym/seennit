@@ -137,7 +137,7 @@ func (s *Service) UpdatePost(ctx context.Context, idPost string, p *types.PostUp
 }
 
 func (s *Service) ChangeStatus(ctx context.Context, idPost string, stat types.Status) error {
-	if err := s.policy.Validate(ctx, idPost, types.PolicyActionPostUpdate); err != nil {
+	if err := s.policy.Validate(ctx, idPost, types.PolicyActionAny); err != nil {
 		return err
 	}
 	_, err := s.FindByID(ctx, idPost)

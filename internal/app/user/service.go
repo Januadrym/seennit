@@ -23,6 +23,7 @@ type (
 		UpdateInfo(ctx context.Context, userID string, user *types.User) error
 		EnrollUser(ctx context.Context, idUser string, idCom string) error
 		CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error)
+		GetUsersCommunity(ctx context.Context, idCom string) ([]*types.User, error)
 	}
 
 	Service struct {
@@ -92,6 +93,10 @@ func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*ty
 
 func (s *Service) FindAll(ctx context.Context) ([]*types.User, error) {
 	users, err := s.Repo.FindAll(ctx)
+	if err != nil {
+		logrus.Errorf("failed to find users, err: %v", err)
+		return nil, err
+	}
 	info := make([]*types.User, 0)
 	for _, usr := range users {
 		info = append(info, &types.User{
@@ -102,7 +107,7 @@ func (s *Service) FindAll(ctx context.Context) ([]*types.User, error) {
 			AvatarURL: usr.AvatarURL,
 		})
 	}
-	return info, err
+	return info, nil
 }
 
 func (s *Service) Delete(ctx context.Context, userID string) error {
@@ -151,4 +156,23 @@ func (s *Service) EnrollUser(ctx context.Context, idCom, idUser string) error {
 
 func (s *Service) CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error) {
 	return s.Repo.CheckUserEnrolled(ctx, idUser, idCom)
+}
+
+func (s *Service) GetUsersCommunity(ctx context.Context, idCom string) ([]*types.User, error) {
+	users, err := s.Repo.GetUsersCommunity(ctx, idCom)
+	if err != nil {
+		logrus.Errorf("failed to get users, err: %v", err)
+		return nil, err
+	}
+	info := make([]*types.User, 0)
+	for _, usr := range users {
+		info = append(info, &types.User{
+			UserID:    usr.UserID,
+			Email:     usr.Email,
+			FirstName: usr.FirstName,
+			LastName:  usr.LastName,
+			AvatarURL: usr.AvatarURL,
+		})
+	}
+	return info, nil
 }

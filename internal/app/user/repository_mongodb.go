@@ -104,3 +104,13 @@ func (r *MongoDBRepository) CheckUserEnrolled(ctx context.Context, idUser string
 	}
 	return idUser, nil
 }
+
+func (r *MongoDBRepository) GetUsersCommunity(ctx context.Context, idCom string) ([]*types.User, error) {
+	s := r.session.Clone()
+	defer s.Close()
+	var users []*types.User
+	if err := r.collection(s).Find(bson.M{"communities": idCom}).All(&users); err != nil {
+		return nil, err
+	}
+	return users, nil
+}

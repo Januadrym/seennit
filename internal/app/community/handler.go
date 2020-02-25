@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/Januadrym/seennit/internal/app/auth"
 	"github.com/Januadrym/seennit/internal/app/status"
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/Januadrym/seennit/internal/pkg/http/respond"
@@ -22,8 +23,9 @@ type (
 		EnrollUser(ctx context.Context, idCom string) error
 		GetAll(ctx context.Context) ([]*types.Community, error)
 		UpdateInfo(ctx context.Context, idCom string, comm *types.Community) error
-		// Policy
+		// Policy & User
 		PromoteUser(ctx context.Context, idUser string, idCom string) error
+		GetUsers(ctx context.Context, idCom string) ([]*types.User, error)
 		// Post
 		SubmitPost(ctx context.Context, nameComm string, req *types.Post) (*types.Post, error)
 		GetAllPosts(ctx context.Context, nameComm string) ([]*types.Post, error)
@@ -83,7 +85,6 @@ func (h *Handler) GetCommunity(w http.ResponseWriter, r *http.Request) {
 		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
 	com, err := h.Svc.GetCommunity(r.Context(), name)
 	if err != nil {
 		respond.Error(w, err, http.StatusInternalServerError)
@@ -95,10 +96,16 @@ func (h *Handler) GetCommunity(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	user := auth.FromContext(r.Context())
+	if com.Status == types.CommunityStatusPrivate && user != nil && user.UserID == com.CreatedByID {
+		respond.JSON(w, http.StatusOK, types.BaseResponse{
+			Data: com,
+		})
+		return
+	}
 	respond.JSON(w, http.StatusNotFound, types.BaseResponse{
 		Status: status.Gen().NotFound,
 	})
-	return
 }
 
 func (h *Handler) GetAllCommunity(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +156,6 @@ func (h *Handler) EnrollUser(w http.ResponseWriter, r *http.Request) {
 		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
 	com, err := h.Svc.SearchCommunity(r.Context(), name)
 	if err != nil {
 		respond.Error(w, err, http.StatusInternalServerError)
@@ -163,6 +169,29 @@ func (h *Handler) EnrollUser(w http.ResponseWriter, r *http.Request) {
 		Data: com,
 	})
 }
+func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+	if name == "" {
+		logrus.WithContext(r.Context()).Info("invalid name")
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
+		return
+	}
+	com, err := h.Svc.SearchCommunity(r.Context(), name)
+	if err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	users, er := h.Svc.GetUsers(r.Context(), com.ID)
+	if er != nil {
+		respond.Error(w, er, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: users,
+	})
+}
+
+// Policy stuff
 
 func (h *Handler) PromoteMod(w http.ResponseWriter, r *http.Request) {
 	var req *PromoteRequest
@@ -193,7 +222,7 @@ func (h *Handler) PromoteMod(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Post part
+// Post stuff
 
 func (h *Handler) SubmitPost(w http.ResponseWriter, r *http.Request) {
 	var req *types.Post

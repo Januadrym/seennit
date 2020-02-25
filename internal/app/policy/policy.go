@@ -35,6 +35,13 @@ func New(enforcer *casbin.Enforcer) (*Service, error) {
 	}, nil
 }
 
+func NewMongoDBCasbinEnforcer(conf CasbinConfig) *casbin.Enforcer {
+	dialInfo := conf.MongoDB.DialInfo()
+	adapter := mongodbadapter.NewAdapterWithDialInfo(dialInfo)
+	enforcer := casbin.NewEnforcer(conf.CongifPath, adapter)
+	return enforcer
+}
+
 func (s *Service) addPolicy(ctx context.Context, p types.Policy) error {
 	_, err := s.enforcer.AddPolicySafe(p.Subject, p.Object, p.Action, p.Effect)
 	return err
@@ -57,7 +64,7 @@ func (s *Service) Validate(ctx context.Context, obj string, act string) error {
 		sub = user.UserID
 	}
 	if !s.IsAllowed(ctx, sub, obj, act) {
-		logrus.WithContext(ctx).WithFields(logrus.Fields{"sub": sub, "action": act, "obj": obj}).Errorf("the user is not authorized to do the action")
+		logrus.WithContext(ctx).WithFields(logrus.Fields{"SUBJECT": sub, "ACTION": act, "OBJECT": obj}).Errorf("This user is not authorized to do this action")
 		return status.Policy().Unauthorized
 	}
 	return nil
@@ -90,9 +97,10 @@ func (s *Service) AddPolicy(ctx context.Context, req types.Policy) error {
 	return nil
 }
 
-func NewMongoDBCasbinEnforcer(conf CasbinConfig) *casbin.Enforcer {
-	dialInfo := conf.MongoDB.DialInfo()
-	adapter := mongodbadapter.NewAdapterWithDialInfo(dialInfo)
-	enforcer := casbin.NewEnforcer(conf.CongifPath, adapter)
-	return enforcer
-}
+// For Community
+// GetAllMods get all moderators of one community
+// func (s *Service) GetAllMods(ctx context.Context, id string) ([]*types.User, error){
+// 	if err := s.Validate(ctx, Object, ActionPolicyUpdate); err != nil {
+// 		return nil, err
+// 	}
+// }

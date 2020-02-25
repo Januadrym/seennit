@@ -54,7 +54,7 @@ func (r *MongoDBRepository) FindAllCom(context.Context) ([]*types.Community, err
 	s := r.session.Clone()
 	defer s.Close()
 	var coms []*types.Community
-	if err := r.collection(s).Find(nil).All(&coms); err != nil {
+	if err := r.collection(s).Find(bson.M{"status": types.CommunityStatusPublic}).All(&coms); err != nil {
 		return nil, err
 	}
 	return coms, nil

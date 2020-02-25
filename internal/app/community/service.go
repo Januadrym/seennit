@@ -37,6 +37,7 @@ type (
 	UserService interface {
 		EnrollUser(ctx context.Context, idCom, idUser string) error
 		CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error)
+		GetUsersCommunity(ctx context.Context, idCom string) ([]*types.User, error)
 	}
 
 	Service struct {
@@ -152,20 +153,25 @@ func (s *Service) GetCommunity(ctx context.Context, name string) (*types.Communi
 		return nil, err
 	}
 	if com.Status == types.CommunityStatusPrivate {
-		return nil, status.Community().NotFound
+		if err := s.policy.Validate(ctx, com.ID, types.PolicyActionAny); err != nil {
+			logrus.Errorf("unauthorized, not owner, err: %v", err)
+			return nil, status.Community().NotFound
+		}
+		logrus.Info("owner of community: ", com.CreatedByName)
+		return com, nil
 	}
 	return com, nil
 }
 
 func (s *Service) UpdateInfo(ctx context.Context, idCom string, comm *types.Community) error {
-	if err := s.policy.Validate(ctx, idCom, types.PolicyActionCommunityUpdate); err != nil {
+	if err := s.policy.Validate(ctx, idCom, types.PolicyObjectCommunity); err != nil {
 		logrus.Errorf("unauthorized, not owner, err: %v", err)
 		return err
 	}
 	return s.Repo.UpdateInfo(ctx, idCom, comm)
 }
 
-// Users
+// Users & Policy related
 
 func (s *Service) EnrollUser(ctx context.Context, idCom string) error {
 	user := auth.FromContext(ctx)
@@ -193,13 +199,30 @@ func (s *Service) PromoteUser(ctx context.Context, idUser string, idCom string) 
 	if err := s.policy.AddPolicy(auth.NewAdminContext(ctx), types.Policy{
 		Subject: idUser,
 		Object:  idCom,
-		Action:  types.PolicyActionCommunityUpdate,
+		Action:  types.PolicyObjectCommunity,
 		Effect:  types.PolicyEffectAllow,
 	}); err != nil {
 		return err
 	}
 	return nil
 }
+
+func (s *Service) GetUsers(ctx context.Context, idCom string) ([]*types.User, error) {
+	if err := s.policy.Validate(ctx, idCom, types.PolicyObjectCommunity); err != nil {
+		logrus.Errorf("unauthorized! permission denied, err: %v", err)
+		return nil, err
+	}
+	users, er := s.userService.GetUsersCommunity(ctx, idCom)
+	if er != nil {
+		logrus.Errorf("failed to get users, err: %v", er)
+		return nil, status.Gen().Internal
+	}
+	return users, nil
+}
+
+// func (s *Service) GetAllMods(ctx context.Context, idCom string) {
+
+// }
 
 // Posts
 
