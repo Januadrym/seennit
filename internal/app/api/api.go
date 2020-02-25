@@ -22,6 +22,7 @@ func NewRouter() (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
+	policyHandler := newPolicyHandler(policySrv)
 
 	// User
 	userSrv, err := newUserService()
@@ -68,6 +69,7 @@ func NewRouter() (http.Handler, error) {
 	routes = append(routes, commHandler.Routes()...)
 	routes = append(routes, postHandler.Routes()...)
 	routes = append(routes, commentHandler.Routes()...)
+	routes = append(routes, policyHandler.Routes()...)
 
 	conf := router.LoadConfigFromEnv()
 	conf.Routes = routes

@@ -98,9 +98,13 @@ func (s *Service) AddPolicy(ctx context.Context, req types.Policy) error {
 }
 
 // For Community
-// GetAllMods get all moderators of one community
-// func (s *Service) GetAllMods(ctx context.Context, id string) ([]*types.User, error){
-// 	if err := s.Validate(ctx, Object, ActionPolicyUpdate); err != nil {
-// 		return nil, err
-// 	}
-// }
+// GetAllMods get all moderators of one community   id string ([]*types.User, error)
+func (s *Service) GetAllMods(ctx context.Context) error {
+	// if err := s.Validate(ctx, Object, ActionPolicyUpdate); err != nil {
+	// 	return nil, err
+	// }
+	// policies := s.enforcer.GetPolicy()
+	policies := s.enforcer.GetPolicy()
+	logrus.Info("policies ne", policies)
+	return nil
+}
