@@ -26,6 +26,7 @@ type (
 		// Policy & User
 		PromoteUser(ctx context.Context, idUser string, idCom string) error
 		GetUsers(ctx context.Context, idCom string) ([]*types.User, error)
+		GetAllMods(ctx context.Context, idCom string) ([]*types.User, error)
 		// Post
 		SubmitPost(ctx context.Context, nameComm string, req *types.Post) (*types.Post, error)
 		GetAllPosts(ctx context.Context, nameComm string) ([]*types.Post, error)
@@ -188,6 +189,28 @@ func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	respond.JSON(w, http.StatusOK, types.BaseResponse{
 		Data: users,
+	})
+}
+
+func (h *Handler) GetAllMods(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+	if name == "" {
+		logrus.WithContext(r.Context()).Info("invalid name")
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
+		return
+	}
+	com, err := h.Svc.SearchCommunity(r.Context(), name)
+	if err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	mods, er := h.Svc.GetAllMods(r.Context(), com.ID)
+	if er != nil {
+		respond.Error(w, er, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: mods,
 	})
 }
 

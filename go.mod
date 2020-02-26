@@ -14,6 +14,7 @@ require (
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.3
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	golang.org/x/crypto v0.0.0-20200128174031-69ecbb4d6d5d

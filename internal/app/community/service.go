@@ -27,6 +27,7 @@ type (
 	PolicyService interface {
 		AddPolicy(ctx context.Context, req types.Policy) error
 		Validate(ctx context.Context, obj string, act string) error
+		GetAllMods(ctx context.Context, id string) ([]string, error)
 	}
 
 	PostService interface {
@@ -38,6 +39,7 @@ type (
 		EnrollUser(ctx context.Context, idCom, idUser string) error
 		CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error)
 		GetUsersCommunity(ctx context.Context, idCom string) ([]*types.User, error)
+		GetMods(ctx context.Context, listID []string) ([]*types.User, error)
 	}
 
 	Service struct {
@@ -164,7 +166,7 @@ func (s *Service) GetCommunity(ctx context.Context, name string) (*types.Communi
 }
 
 func (s *Service) UpdateInfo(ctx context.Context, idCom string, comm *types.Community) error {
-	if err := s.policy.Validate(ctx, idCom, types.PolicyObjectCommunity); err != nil {
+	if err := s.policy.Validate(ctx, idCom, types.PolicyActionCommunity); err != nil {
 		logrus.Errorf("unauthorized, not owner, err: %v", err)
 		return err
 	}
@@ -199,7 +201,7 @@ func (s *Service) PromoteUser(ctx context.Context, idUser string, idCom string) 
 	if err := s.policy.AddPolicy(auth.NewAdminContext(ctx), types.Policy{
 		Subject: idUser,
 		Object:  idCom,
-		Action:  types.PolicyObjectCommunity,
+		Action:  types.PolicyActionCommunity,
 		Effect:  types.PolicyEffectAllow,
 	}); err != nil {
 		return err
@@ -208,7 +210,7 @@ func (s *Service) PromoteUser(ctx context.Context, idUser string, idCom string) 
 }
 
 func (s *Service) GetUsers(ctx context.Context, idCom string) ([]*types.User, error) {
-	if err := s.policy.Validate(ctx, idCom, types.PolicyObjectCommunity); err != nil {
+	if err := s.policy.Validate(ctx, idCom, types.PolicyActionCommunity); err != nil {
 		logrus.Errorf("unauthorized! permission denied, err: %v", err)
 		return nil, err
 	}
@@ -220,9 +222,23 @@ func (s *Service) GetUsers(ctx context.Context, idCom string) ([]*types.User, er
 	return users, nil
 }
 
-// func (s *Service) GetAllMods(ctx context.Context, idCom string) {
-
-// }
+func (s *Service) GetAllMods(ctx context.Context, idCom string) ([]*types.User, error) {
+	if err := s.policy.Validate(ctx, idCom, types.PolicyActionCommunity); err != nil {
+		logrus.Errorf("unauthorized! permission denied, err: %v", err)
+		return nil, err
+	}
+	list, er := s.policy.GetAllMods(ctx, idCom)
+	if er != nil {
+		logrus.Errorf("failed to get mods (policy service), err: %v", er)
+		return nil, status.Gen().Internal
+	}
+	mods, e := s.userService.GetMods(ctx, list)
+	if e != nil {
+		logrus.Errorf("failed to get mods (users service), err: %v", e)
+		return nil, e
+	}
+	return mods, nil
+}
 
 // Posts
 

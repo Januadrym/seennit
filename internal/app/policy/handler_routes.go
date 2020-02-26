@@ -9,9 +9,9 @@ import (
 func (h *Handler) Routes() []router.Route {
 	return []router.Route{
 		{
-			Path:    "/api/v1",
-			Method:  http.MethodGet,
-			Handler: h.GetMods,
+			Path:   "/api/v1",
+			Method: http.MethodGet,
+			// Handler: h.GetMods,
 		},
 	}
 }

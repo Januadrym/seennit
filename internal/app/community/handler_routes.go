@@ -65,6 +65,14 @@ func (h *Handler) Routes() []router.Route {
 			Handler:     h.GetUsers,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
+		{
+			// get all moderators
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/mods",
+			Method:      http.MethodGet,
+			Handler:     h.GetAllMods,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
+
 		// Posts stuff
 		{
 			// submit one post

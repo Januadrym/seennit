@@ -98,13 +98,21 @@ func (s *Service) AddPolicy(ctx context.Context, req types.Policy) error {
 }
 
 // For Community
-// GetAllMods get all moderators of one community   id string ([]*types.User, error)
-func (s *Service) GetAllMods(ctx context.Context) error {
-	// if err := s.Validate(ctx, Object, ActionPolicyUpdate); err != nil {
-	// 	return nil, err
-	// }
-	// policies := s.enforcer.GetPolicy()
-	policies := s.enforcer.GetPolicy()
-	logrus.Info("policies ne", policies)
-	return nil
+
+// GetAllMods get all moderators of one community
+func (s *Service) GetAllMods(ctx context.Context, id string) ([]string, error) {
+	if err := s.Validate(ctx, id, ActionPolicyUpdate); err != nil {
+		logrus.Errorf("validate policy service, err: %v", err)
+		return nil, err
+	}
+	// filter by community id
+	plc := s.enforcer.GetFilteredPolicy(1, id) // "1" stand for object index
+
+	list := make([]string, 0)
+	for _, p := range plc {
+		if p[3] != types.PolicyEffectDeny && (p[2] == types.PolicyActionAny || p[2] == types.PolicyActionCommunity) {
+			list = append(list, p[0])
+		}
+	}
+	return list, nil
 }

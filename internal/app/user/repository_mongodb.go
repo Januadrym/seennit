@@ -114,3 +114,13 @@ func (r *MongoDBRepository) GetUsersCommunity(ctx context.Context, idCom string)
 	}
 	return users, nil
 }
+
+func (r *MongoDBRepository) GetMods(ctx context.Context, listID []string) ([]*types.User, error) {
+	s := r.session.Clone()
+	defer s.Close()
+	var listMods []*types.User
+	if err := r.collection(s).Find(bson.M{"id": bson.M{"$in": listID}}).All(&listMods); err != nil {
+		return nil, err
+	}
+	return listMods, nil
+}

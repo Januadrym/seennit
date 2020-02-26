@@ -24,6 +24,7 @@ type (
 		EnrollUser(ctx context.Context, idUser string, idCom string) error
 		CheckUserEnrolled(ctx context.Context, idUser string, idCom string) (string, error)
 		GetUsersCommunity(ctx context.Context, idCom string) ([]*types.User, error)
+		GetMods(ctx context.Context, listID []string) ([]*types.User, error)
 	}
 
 	Service struct {
@@ -166,6 +167,25 @@ func (s *Service) GetUsersCommunity(ctx context.Context, idCom string) ([]*types
 	}
 	info := make([]*types.User, 0)
 	for _, usr := range users {
+		info = append(info, &types.User{
+			UserID:    usr.UserID,
+			Email:     usr.Email,
+			FirstName: usr.FirstName,
+			LastName:  usr.LastName,
+			AvatarURL: usr.AvatarURL,
+		})
+	}
+	return info, nil
+}
+
+func (s *Service) GetMods(ctx context.Context, listID []string) ([]*types.User, error) {
+	listMods, err := s.Repo.GetMods(ctx, listID)
+	if err != nil {
+		logrus.Errorf("failed to get mods, err: %v", err)
+		return nil, err
+	}
+	info := make([]*types.User, 0)
+	for _, usr := range listMods {
 		info = append(info, &types.User{
 			UserID:    usr.UserID,
 			Email:     usr.Email,

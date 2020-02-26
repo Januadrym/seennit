@@ -24,5 +24,5 @@ const (
 
 // Policy of community
 const (
-	PolicyObjectCommunity = "community"
+	PolicyActionCommunity = "community"
 )
