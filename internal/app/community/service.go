@@ -28,6 +28,7 @@ type (
 		AddPolicy(ctx context.Context, req types.Policy) error
 		Validate(ctx context.Context, obj string, act string) error
 		GetAllMods(ctx context.Context, id string) ([]string, error)
+		RemovePolicy(ctx context.Context, idOwner, idCom string) error
 	}
 
 	PostService interface {
@@ -238,6 +239,33 @@ func (s *Service) GetAllMods(ctx context.Context, idCom string) ([]*types.User, 
 		return nil, e
 	}
 	return mods, nil
+}
+
+func (s *Service) TransferAdmin(ctx context.Context, idUser, nameCom string) error {
+	com, err := s.SearchCommunity(ctx, nameCom)
+	if err != nil {
+		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
+		return err
+	}
+	if er := s.policy.Validate(ctx, com.ID, types.PolicyActionAny); er != nil {
+		logrus.Errorf("unauthorized! permission denied, err: %v", er)
+		return er
+	}
+	if er := s.policy.RemovePolicy(ctx, com.CreatedByID, com.ID); er != nil {
+		logrus.Errorf("failed to remove policy, err: %v", er)
+		return er
+	}
+	// make new owner
+	if err := s.policy.AddPolicy(auth.NewAdminContext(ctx), types.Policy{
+		Subject: idUser,
+		Object:  com.ID,
+		Action:  types.PolicyActionAny,
+		Effect:  types.PolicyEffectAllow,
+	}); err != nil {
+		return err
+	}
+	logrus.Info("dc chua??")
+	return nil
 }
 
 // Posts

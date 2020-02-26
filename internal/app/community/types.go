@@ -1,7 +1,7 @@
 package community
 
 type (
-	PromoteRequest struct {
+	UserIDPolicyRequest struct {
 		ID string `json:"id"`
 	}
 )

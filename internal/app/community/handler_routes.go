@@ -67,9 +67,16 @@ func (h *Handler) Routes() []router.Route {
 		},
 		{
 			// get all moderators
-			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/mods",
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/policy",
 			Method:      http.MethodGet,
 			Handler:     h.GetAllMods,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
+		{
+			// Transfer Admin
+			Path:        "/s/{name:[a-z0-9-A-Z-\\-]+}/policy",
+			Method:      http.MethodPost,
+			Handler:     h.TransferAdmin,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
 

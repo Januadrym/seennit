@@ -27,6 +27,7 @@ type (
 		PromoteUser(ctx context.Context, idUser string, idCom string) error
 		GetUsers(ctx context.Context, idCom string) ([]*types.User, error)
 		GetAllMods(ctx context.Context, idCom string) ([]*types.User, error)
+		TransferAdmin(ctx context.Context, idUser, nameCom string) error
 		// Post
 		SubmitPost(ctx context.Context, nameComm string, req *types.Post) (*types.Post, error)
 		GetAllPosts(ctx context.Context, nameComm string) ([]*types.Post, error)
@@ -217,7 +218,7 @@ func (h *Handler) GetAllMods(w http.ResponseWriter, r *http.Request) {
 // Policy stuff
 
 func (h *Handler) PromoteMod(w http.ResponseWriter, r *http.Request) {
-	var req *PromoteRequest
+	var req *UserIDPolicyRequest
 	defer r.Body.Close()
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -235,6 +236,30 @@ func (h *Handler) PromoteMod(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.Svc.PromoteUser(r.Context(), req.ID, com.ID); err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: types.IDResponse{
+			ID: req.ID,
+		},
+	})
+}
+
+func (h *Handler) TransferAdmin(w http.ResponseWriter, r *http.Request) {
+	var req UserIDPolicyRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+	comName := mux.Vars(r)["name"]
+	if comName == "" {
+		logrus.WithContext(r.Context()).Info("invalid name")
+		respond.Error(w, status.Gen().BadRequest, http.StatusBadRequest)
+		return
+	}
+	if err := h.Svc.TransferAdmin(r.Context(), req.ID, comName); err != nil {
 		respond.Error(w, err, http.StatusInternalServerError)
 		return
 	}

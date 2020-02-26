@@ -22,7 +22,13 @@ const (
 	PolicyEffectDeny  = "deny"
 )
 
+// Policy action
+const (
+	PolicyActionDeny = "deny"
+)
+
 // Policy of community
 const (
-	PolicyActionCommunity = "community"
+	PolicyActionCommunity     = "community"
+	PolicyActionCommunityRead = "community:read"
 )

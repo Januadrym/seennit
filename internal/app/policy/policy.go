@@ -101,12 +101,9 @@ func (s *Service) AddPolicy(ctx context.Context, req types.Policy) error {
 
 // GetAllMods get all moderators of one community
 func (s *Service) GetAllMods(ctx context.Context, id string) ([]string, error) {
-	if err := s.Validate(ctx, id, ActionPolicyUpdate); err != nil {
-		logrus.Errorf("validate policy service, err: %v", err)
-		return nil, err
-	}
 	// filter by community id
-	plc := s.enforcer.GetFilteredPolicy(1, id) // "1" stand for object index
+	// "1" stand for object index
+	plc := s.enforcer.GetFilteredPolicy(1, id)
 
 	list := make([]string, 0)
 	for _, p := range plc {
@@ -115,4 +112,13 @@ func (s *Service) GetAllMods(ctx context.Context, id string) ([]string, error) {
 		}
 	}
 	return list, nil
+}
+
+func (s *Service) RemovePolicy(ctx context.Context, idOwner, idCom string) error {
+	_, err := s.enforcer.RemoveFilteredPolicySafe(0, idOwner, idCom)
+	if err != nil {
+		logrus.Errorf("failed to remove policy, err: %v", err)
+		return status.Gen().Internal
+	}
+	return nil
 }
