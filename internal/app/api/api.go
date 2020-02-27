@@ -24,6 +24,13 @@ func NewRouter() (http.Handler, error) {
 	}
 	policyHandler := newPolicyHandler(policySrv)
 
+	// Raing
+	ratingSrv, err := newRatingService()
+	if err != nil {
+		return nil, err
+	}
+	ratingHandler := newRatingHandler(ratingSrv)
+
 	// User
 	userSrv, err := newUserService()
 	if err != nil {
@@ -70,6 +77,7 @@ func NewRouter() (http.Handler, error) {
 	routes = append(routes, postHandler.Routes()...)
 	routes = append(routes, commentHandler.Routes()...)
 	routes = append(routes, policyHandler.Routes()...)
+	routes = append(routes, ratingHandler.Routes()...)
 
 	conf := router.LoadConfigFromEnv()
 	conf.Routes = routes
