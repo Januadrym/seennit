@@ -5,9 +5,8 @@ I made this project while learning the GO programming language
 
 This project follows:
 - [golang-standards/project-layout](https://github.com/golang-standards/project-layout)
-- [Simple blog for sharing Go - robusta](https://github.com/pthethanh/robusta)
 
-***Objective***: Create a web application that people can share news and submit content (a Reddit clone)
+***Objective***: Create a web application that people can share news and submit content 
 
 ***Tech used***: GoLang, MongoDB, Docker
 

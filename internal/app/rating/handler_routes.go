@@ -9,7 +9,7 @@ import (
 func (h *Handler) Routes() []router.Route {
 	return []router.Route{
 		{
-			Path:    "/api/rating",
+			Path:    "/api/v1/rating",
 			Method:  http.MethodPost,
 			Handler: h.Create,
 		},
