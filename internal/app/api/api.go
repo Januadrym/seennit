@@ -52,8 +52,14 @@ func NewRouter() (http.Handler, error) {
 	}
 	postHandler := newPostHandler(postSrv)
 
+	// Notification
+	notiSrv, err := newNotificationService()
+	if err != nil {
+		return nil, err
+	}
+
 	// Community
-	commSrv, err := newCommunityService(policySrv, postSrv, userSrv)
+	commSrv, err := newCommunityService(policySrv, postSrv, userSrv, notiSrv)
 	if err != nil {
 		return nil, err
 	}

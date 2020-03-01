@@ -31,6 +31,13 @@ type (
 		Content   string    `json:"content" bson:"content" validate:"required"`
 		UpdatedAt time.Time `json:"update_at" bson:"updated_at"`
 	}
+
+	PostInfo struct {
+		CommunityID   string `json:"community_id" bson:"community_id"`
+		Title         string `json:"title" bson:"title" validate:"required"`
+		Content       string `json:"content" bson:"content" validate:"required"`
+		CreatedByName string `json:"created_by_name" bson:"created_by_name"`
+	}
 )
 
 const (

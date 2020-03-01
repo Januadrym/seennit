@@ -43,20 +43,26 @@ type (
 		GetMods(ctx context.Context, listID []string) ([]*types.User, error)
 	}
 
+	NotifiService interface {
+		CreateNotificaion(ctx context.Context, postID string, userIDs []string, mess string) error
+	}
+
 	Service struct {
 		Repo        RepoProvider
 		policy      PolicyService
 		postService PostService
 		userService UserService
+		notiService NotifiService
 	}
 )
 
-func NewService(repo RepoProvider, policySvc PolicyService, postSvc PostService, userSvc UserService) *Service {
+func NewService(repo RepoProvider, policySvc PolicyService, postSvc PostService, userSvc UserService, notiSvc NotifiService) *Service {
 	return &Service{
 		Repo:        repo,
 		policy:      policySvc,
 		postService: postSvc,
 		userService: userSvc,
+		notiService: notiSvc,
 	}
 }
 
@@ -280,10 +286,23 @@ func (s *Service) SubmitPost(ctx context.Context, nameComm string, req *types.Po
 		logrus.WithContext(ctx).Errorf("failed to find community, err: %v", err)
 		return nil, err
 	}
-	thispost, err := s.postService.Create(ctx, req, com.ID)
-	if err != nil {
-		logrus.WithContext(ctx).Errorf("failed to create post, err: %v", err)
+	thispost, er := s.postService.Create(ctx, req, com.ID)
+	if er != nil {
+		logrus.WithContext(ctx).Errorf("failed to create post, err: %v", er)
 		return nil, status.Gen().Internal
+	}
+
+	// noti (beta)
+	userIDs, e := s.FindAllUserID(ctx, com.ID)
+	if e != nil {
+		logrus.WithContext(ctx).Errorf("failed to find IDs, err: %v", e)
+		return nil, status.Gen().Internal
+	}
+	mess := thispost.Title
+	newerr := s.notiService.CreateNotificaion(ctx, thispost.ID, userIDs, mess)
+	if newerr != nil {
+		logrus.WithContext(ctx).Errorf("failed to create notification, err: %v", newerr)
+		return nil, newerr
 	}
 	return thispost, nil
 }
@@ -295,4 +314,19 @@ func (s *Service) GetAllPosts(ctx context.Context, nameComm string) ([]*types.Po
 		return nil, err
 	}
 	return s.postService.GetAll(ctx, com.ID)
+}
+
+// Noti relate
+
+func (s *Service) FindAllUserID(ctx context.Context, idCom string) ([]string, error) {
+	users, err := s.GetUsers(ctx, idCom)
+	if err != nil {
+		logrus.WithContext(ctx).Errorf("failed to find users, err: %v", err)
+		return nil, err
+	}
+	var list []string
+	for _, v := range users {
+		list = append(list, v.UserID)
+	}
+	return list, err
 }
