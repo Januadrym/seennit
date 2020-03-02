@@ -32,5 +32,11 @@ func (h *Handler) Routes() []router.Route {
 			Handler:     h.Update,
 			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
 		},
+		{
+			Path:        "/users/notification",
+			Method:      http.MethodGet,
+			Handler:     h.LoadNoti,
+			Middlewares: []router.Middleware{auth.RequireAuthMiddleware},
+		},
 	}
 }

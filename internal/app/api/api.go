@@ -24,6 +24,12 @@ func NewRouter() (http.Handler, error) {
 	}
 	policyHandler := newPolicyHandler(policySrv)
 
+	// Notification
+	notiSrv, err := newNotificationService()
+	if err != nil {
+		return nil, err
+	}
+
 	// Raing
 	ratingSrv, err := newRatingService()
 	if err != nil {
@@ -32,7 +38,7 @@ func NewRouter() (http.Handler, error) {
 	ratingHandler := newRatingHandler(ratingSrv)
 
 	// User
-	userSrv, err := newUserService()
+	userSrv, err := newUserService(policySrv, notiSrv)
 	if err != nil {
 		return nil, err
 	}
@@ -51,12 +57,6 @@ func NewRouter() (http.Handler, error) {
 		return nil, err
 	}
 	postHandler := newPostHandler(postSrv)
-
-	// Notification
-	notiSrv, err := newNotificationService()
-	if err != nil {
-		return nil, err
-	}
 
 	// Community
 	commSrv, err := newCommunityService(policySrv, postSrv, userSrv, notiSrv)

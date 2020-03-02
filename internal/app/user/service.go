@@ -27,14 +27,26 @@ type (
 		GetMods(ctx context.Context, listID []string) ([]*types.User, error)
 	}
 
+	PolicyService interface {
+		Validate(ctx context.Context, obj string, act string) error
+	}
+
+	NotiService interface {
+		LoadNotiUser(ctx context.Context, userID string) ([]*types.PushNotification, error)
+	}
+
 	Service struct {
-		Repo repoProvider
+		Repo    repoProvider
+		policy  PolicyService
+		notiSvc NotiService
 	}
 )
 
-func NewService(repo repoProvider) *Service {
+func NewService(repo repoProvider, policySvc PolicyService, notiSvc NotiService) *Service {
 	return &Service{
-		Repo: repo,
+		Repo:    repo,
+		policy:  policySvc,
+		notiSvc: notiSvc,
 	}
 }
 
@@ -93,6 +105,9 @@ func (s *Service) Register(ctx context.Context, req *types.RegisterRequest) (*ty
 }
 
 func (s *Service) FindAll(ctx context.Context) ([]*types.User, error) {
+	if err := s.policy.Validate(ctx, types.PolicyObjectAny, types.PolicyActionAny); err != nil {
+		return nil, err
+	}
 	users, err := s.Repo.FindAll(ctx)
 	if err != nil {
 		logrus.Errorf("failed to find users, err: %v", err)
@@ -195,4 +210,8 @@ func (s *Service) GetMods(ctx context.Context, listID []string) ([]*types.User, 
 		})
 	}
 	return info, nil
+}
+
+func (s *Service) LoadNotification(ctx context.Context, ID string) ([]*types.PushNotification, error) {
+	return s.notiSvc.LoadNotiUser(ctx, ID)
 }

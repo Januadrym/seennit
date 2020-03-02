@@ -319,7 +319,7 @@ func (s *Service) GetAllPosts(ctx context.Context, nameComm string) ([]*types.Po
 // Noti relate
 
 func (s *Service) FindAllUserID(ctx context.Context, idCom string) ([]string, error) {
-	users, err := s.GetUsers(ctx, idCom)
+	users, err := s.userService.GetUsersCommunity(ctx, idCom)
 	if err != nil {
 		logrus.WithContext(ctx).Errorf("failed to find users, err: %v", err)
 		return nil, err

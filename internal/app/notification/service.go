@@ -12,6 +12,7 @@ import (
 type (
 	RepoProvider interface {
 		Create(ctx context.Context, noti *types.PushNotification) error
+		LoadNoti(ctx context.Context, userID string) ([]*types.PushNotification, error)
 	}
 
 	Service struct {
@@ -28,9 +29,10 @@ func NewService(repo RepoProvider) *Service {
 //
 
 func (s *Service) CreateNotificaion(ctx context.Context, postID string, userIDs []string, mess string) error {
+	newmsg := "New post has just created. Title: " + mess
 	noti := &types.PushNotification{
 		ID:      uuid.New().String(),
-		Message: mess,
+		Message: newmsg,
 		PostID:  postID,
 		UserID:  userIDs,
 	}
@@ -42,6 +44,19 @@ func (s *Service) CreateNotificaion(ctx context.Context, postID string, userIDs 
 	return nil
 }
 
-// func (s *Service) GetNotiUser(ctx context.Context, userID string) (*types.PushNotification, error) {
-// 	return nil, nil
-// }
+func (s *Service) LoadNotiUser(ctx context.Context, userID string) ([]*types.PushNotification, error) {
+	notis, err := s.Repo.LoadNoti(ctx, userID)
+	if err != nil {
+		logrus.Errorf("failed to load notification, err: %v", err)
+		return nil, err
+	}
+
+	simpleNoti := make([]*types.PushNotification, 0)
+	for _, noti := range notis {
+		simpleNoti = append(simpleNoti, &types.PushNotification{
+			Message: noti.Message,
+			PostID:  noti.PostID,
+		})
+	}
+	return simpleNoti, nil
+}

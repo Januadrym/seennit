@@ -5,6 +5,8 @@ import (
 
 	"github.com/Januadrym/seennit/internal/app/types"
 	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
+	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -27,7 +29,19 @@ func (r *MongoDBRepository) Create(ctx context.Context, noti *types.PushNotifica
 	s := r.sessions.Clone()
 	defer s.Close()
 	if err := r.collection(s).Insert(noti); err != nil {
+		logrus.Errorf("failed to create notificaion in DB, err: %v", err)
 		return err
 	}
 	return nil
+}
+
+func (r *MongoDBRepository) LoadNoti(ctx context.Context, userID string) ([]*types.PushNotification, error) {
+	s := r.sessions.Clone()
+	defer s.Close()
+	var notis []*types.PushNotification
+	if err := r.collection(s).Find(bson.M{"user_id": userID}).All(&notis); err != nil {
+		logrus.Errorf("failed to find notification in DB, err: %v", err)
+		return nil, err
+	}
+	return notis, nil
 }

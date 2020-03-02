@@ -20,6 +20,8 @@ type (
 		FindAll(ctx context.Context) ([]*types.User, error)
 		Delete(ctx context.Context, userID string) error
 		Update(ctx context.Context, userID string, user *types.User) error
+
+		LoadNotification(ctx context.Context, ID string) ([]*types.PushNotification, error)
 	}
 
 	Handler struct {
@@ -97,5 +99,18 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	respond.JSON(w, http.StatusOK, types.BaseResponse{
 		Data: user,
+	})
+}
+
+func (h *Handler) LoadNoti(w http.ResponseWriter, r *http.Request) {
+	thisUser := auth.FromContext(r.Context())
+
+	notis, err := h.Svc.LoadNotification(r.Context(), thisUser.UserID)
+	if err != nil {
+		respond.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+	respond.JSON(w, http.StatusOK, types.BaseResponse{
+		Data: notis,
 	})
 }
