@@ -25,7 +25,22 @@ func ListenAndServe(conf Config, router http.Handler) {
 	}
 	logrus.Infof("HTTP server is listening on: %s", address)
 
+	// graceful shutdown
+
+	// signs := make(chan os.Signal, 1)
+	// signal.Notify(signs, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	// <-signs
+
 	if err := srv.ListenAndServe(); err != nil {
 		logrus.Panicf("listen: %s\n", err)
 	}
+
+	//
+	// srvContext, srvCancel := context.WithTimeout(context.Background(), conf.ShutdownTimeout)
+	// defer srvCancel()
+	// logrus.Infof("shutting down server in slow motion... ")
+	// if err := srv.Shutdown(srvContext); err != nil {
+	// 	logrus.Panic("Server is shutting down with error: ", err)
+	// }
+
 }
