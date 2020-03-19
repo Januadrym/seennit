@@ -93,10 +93,10 @@ func (s *Service) AddPolicy(ctx context.Context, req types.Policy) error {
 		logrus.WithContext(ctx).Errorf("fail to cleaned up old policy, err: %v", err)
 		return status.Gen().Internal
 	}
-
 	return nil
 }
 
+// ------------------------------------------------------------------------------------------------> HERE!!!!!!!!!!!!!!!!!!
 // For Community
 
 // GetAllMods get all moderators of one community
@@ -104,7 +104,7 @@ func (s *Service) GetAllMods(ctx context.Context, id string) ([]string, error) {
 	// filter by community id
 	// "1" stand for object index
 	plc := s.enforcer.GetFilteredPolicy(1, id)
-
+	logrus.Info(plc)
 	list := make([]string, 0)
 	for _, p := range plc {
 		if p[3] != types.PolicyEffectDeny && (p[2] == types.PolicyActionAny || p[2] == types.PolicyActionCommunity) {

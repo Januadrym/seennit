@@ -172,9 +172,10 @@ func (s *Service) GetCommunity(ctx context.Context, name string) (*types.Communi
 	return com, nil
 }
 
+// ------------------------------------------------------------------------------------------------> HERE!!!!!!!!!!!!!!!!!!
 func (s *Service) UpdateInfo(ctx context.Context, idCom string, comm *types.Community) error {
 	if err := s.policy.Validate(ctx, idCom, types.PolicyActionCommunity); err != nil {
-		logrus.Errorf("unauthorized, not owner, err: %v", err)
+		logrus.Errorf("unauthorized, permission denied, err: %v", err)
 		return err
 	}
 	return s.Repo.UpdateInfo(ctx, idCom, comm)
@@ -229,6 +230,7 @@ func (s *Service) GetUsers(ctx context.Context, idCom string) ([]*types.User, er
 	return users, nil
 }
 
+// ------------------------------------------------------------------------------------------------> HERE!!!!!!!!!!!!!!!!!!
 func (s *Service) GetAllMods(ctx context.Context, idCom string) ([]*types.User, error) {
 	if err := s.policy.Validate(ctx, idCom, types.PolicyActionCommunity); err != nil {
 		logrus.Errorf("unauthorized! permission denied, err: %v", err)
