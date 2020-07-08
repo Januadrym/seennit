@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/Januadrym/seennit/internal/app/api"
 	"github.com/Januadrym/seennit/internal/pkg/http/server"
+
 	"github.com/sirupsen/logrus"
 )
 
