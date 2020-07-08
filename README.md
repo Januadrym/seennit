@@ -10,7 +10,7 @@ This project follows:
 
 ***Tech used***: GoLang, MongoDB, Docker
 
-***Status***: still in active development
+***Status***: still in development
 
 
 ### Authors
